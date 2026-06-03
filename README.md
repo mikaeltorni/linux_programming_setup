@@ -79,6 +79,20 @@ cp configs/continue/config.yaml ~/.continue/config.yaml
 
 MIT License — see LICENSE.md
 
+## Part of 7-Repo Desktop Setup Chain
+
+This repository is **Phase 5** in the desktop setup chain:
+
+1. `linux_installations_setup` — Base packages, hardware, apps
+2. `linux_configuration_setup` — GNOME desktop, autostart, GSettings
+3. `linux_hotkey_setup` — GNOME hotkeys and workspace bindings
+4. `agent_command_center` — Agent command center components
+5. **`linux_programming_setup` (this repo)** — Cursor IDE, VS Code extensions
+6. `ubuntu_2404_taskbar_system_status_monitor` — Taskbar system monitor extension
+7. `phrase_automation` — Phrase automation tmux service
+
+It is automatically cloned and run by the main installer (`installation_scripts/install.sh`).
+
 ## Disclaimer
 
 This software is provided under the MIT License on an **“as is”** basis, without warranties of any kind. To the maximum extent permitted by applicable law, the authors and copyright holders shall not be liable for any claims, damages, losses, or other liability arising from the use of this software.
