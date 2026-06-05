@@ -47,12 +47,11 @@ main_inner() {
 }
 
 run_and_log_with_reboot() {
-  local ts log_file
+  local ts log_dir log_file
   ts=$(date +"%Y%m%d-%H%M%S")
-  log_file="./linux_programming_setup-$ts.log"
-  if ! touch "$log_file" 2>/dev/null; then
-    log_file="/tmp/linux_programming_setup-$ts.log"
-  fi
+  log_dir="$SCRIPT_DIR/.log"
+  mkdir -p "$log_dir"
+  log_file="$log_dir/linux_programming_setup-$ts.log"
 
   main_inner "$@" 2>&1 | tee "$log_file"
   msg "All done. Log file written to: $log_file"

@@ -2,6 +2,8 @@
 
 Cursor IDE installation, VS Code extension management, and Continue AI assistant configuration.
 
+Installer run logs are written to the repository-local `.log/` directory.
+
 ## Features
 
 - **Cursor IDE**: Downloads and installs the Cursor IDE .deb package
