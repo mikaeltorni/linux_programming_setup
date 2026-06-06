@@ -21,6 +21,7 @@ source "$SCRIPT_DIR/lib/helpers.sh"
 source "$SCRIPT_DIR/lib/gsettings_helpers.sh"
 source "$SCRIPT_DIR/lib/cursor_install.sh"
 source "$SCRIPT_DIR/lib/autostart_cursor.sh"
+source "$SCRIPT_DIR/lib/continue_setup.sh"
 
 # ── Main installer logic ────────────────────────────────────────────────────
 
@@ -30,13 +31,15 @@ main_inner() {
   local install_steps=(
     install_cursor
     install_cursor_extensions
+    configure_continue
     configure_cursor_autostart
   )
 
   if [[ "${ISC_APPLY_HOTKEYS_ONLY:-0}" == "1" ]]; then
     msg "=== LPS CONFIG-ONLY MODE ==="
     ensure_root
-    # In config-only mode, only run autostart configuration
+    # In config-only mode, apply editor and autostart configuration.
+    configure_continue || true
     configure_cursor_autostart || true
   else
     ensure_root

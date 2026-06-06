@@ -8,7 +8,7 @@ Installer run logs are written to the repository-local `.log/` directory.
 
 - **Cursor IDE**: Downloads and installs the Cursor IDE .deb package
 - **VS Code Extensions**: Installs extensions listed in `configs/vsc_cursor_extensions`
-- **Continue AI**: Copies Continue config to user's home directory for Qwen 2.5 Coder with LM Studio backend
+- **Continue AI**: Installs Continue config and its CPU-resident Qwen 2.5 Coder LM Studio profile
 - **Autostart**: Configures Cursor IDE to launch on login
 
 ## Installation
@@ -31,6 +31,7 @@ sudo ISC_NO_REBOOT=1 bash install.sh
 | `CURSOR_DEB_URL` | URL to Cursor .deb package | (required, must be set) |
 | `CURSOR_VERSION` | Version string for reference | `2.6.22` |
 | `CURSOR_EXTENSIONS_FILE` | Path to extensions list file | `$CONFIG_DIR/vsc_cursor_extensions` |
+| `LMSTUDIO_USER_SERVICE_NAME` | Agent Command Center LM Studio service to restart after profile changes | `lmstudio-serve.service` |
 
 ## Managing Extensions
 
@@ -60,22 +61,25 @@ linux_programming_setup/
 │   ├── vsc_cursor_extensions     # VS Code/Cursor extension IDs (one per line)
 │   └── continue/
 │       └── config.yaml           # Continue AI assistant configuration
+│   └── lmstudio/
+│       └── autocomplete.env      # Continue model preload profile
 └── lib/
     ├── helpers.sh                # Core utility functions
     ├── gsettings_helpers.sh      # GSettings helper functions
     ├── cursor_install.sh         # Cursor IDE installation
-    └── autostart_cursor.sh       # Cursor autostart configuration
+    ├── autostart_cursor.sh       # Cursor autostart configuration
+    └── continue_setup.sh         # Continue config and model profile deployment
 ```
 
 ## Continue AI Configuration
 
 The `configs/continue/config.yaml` file configures the Continue VS Code/Cursor extension to use Qwen 2.5 Coder via LM Studio's local OpenAI-compatible API endpoint (`http://localhost:1234/v1`).
 
-After installing Cursor and the Continue extension, copy this config to:
-```bash
-mkdir -p ~/.continue
-cp configs/continue/config.yaml ~/.continue/config.yaml
-```
+The installer copies the editor configuration to `~/.continue/config.yaml` and
+the model profile to
+`~/.config/linux-programming-setup/lmstudio/autocomplete.env`. Agent Command
+Center's shared LM Studio boot service reads that optional profile and loads
+the model after the coding-agent model.
 
 ## License
 

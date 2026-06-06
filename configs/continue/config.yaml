@@ -14,7 +14,7 @@ models:
         - "*.md"
         - "*.txt"
     defaultCompletionOptions:
-      contextLength: 32768
+      contextLength: 8192
       temperature: 0.2
 
 context:
