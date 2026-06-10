@@ -22,6 +22,7 @@ source "$SCRIPT_DIR/lib/gsettings_helpers.sh"
 source "$SCRIPT_DIR/lib/cursor_install.sh"
 source "$SCRIPT_DIR/lib/autostart_cursor.sh"
 source "$SCRIPT_DIR/lib/continue_setup.sh"
+source "$SCRIPT_DIR/lib/claude_status_bar_setup.sh"
 
 # ── Main installer logic ────────────────────────────────────────────────────
 
@@ -32,6 +33,7 @@ main_inner() {
     install_cursor
     install_cursor_extensions
     configure_continue
+    configure_claude_status_bar
     configure_cursor_autostart
   )
 
@@ -40,6 +42,7 @@ main_inner() {
     ensure_root
     # In config-only mode, apply editor and autostart configuration.
     configure_continue || true
+    configure_claude_status_bar || true
     configure_cursor_autostart || true
   else
     ensure_root
