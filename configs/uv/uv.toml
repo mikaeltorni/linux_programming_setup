@@ -1,0 +1,10 @@
+# Global UV configuration — applies to every project on this machine.
+#
+# Supply-chain protection: ignore any package release published within the last
+# 24 hours. The "24 hours" value is a rolling window recalculated at each uv
+# invocation (relies on PEP 700 upload-time metadata; PyPI supports it).
+#
+# This is a machine-wide BACKSTOP only. Per-project pyproject.toml [tool.uv]
+# settings override this file and remain the source of truth for reproducibility
+# on clean installs / other machines / CI where this file does not exist.
+exclude-newer = "24 hours"

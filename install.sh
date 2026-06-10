@@ -23,6 +23,7 @@ source "$SCRIPT_DIR/lib/cursor_install.sh"
 source "$SCRIPT_DIR/lib/autostart_cursor.sh"
 source "$SCRIPT_DIR/lib/continue_setup.sh"
 source "$SCRIPT_DIR/lib/claude_status_bar_setup.sh"
+source "$SCRIPT_DIR/lib/uv_supply_chain.sh"
 
 # ── Main installer logic ────────────────────────────────────────────────────
 
@@ -35,6 +36,7 @@ main_inner() {
     configure_continue
     configure_claude_status_bar
     configure_cursor_autostart
+    configure_uv_supply_chain
   )
 
   if [[ "${ISC_APPLY_HOTKEYS_ONLY:-0}" == "1" ]]; then
@@ -44,6 +46,7 @@ main_inner() {
     configure_continue || true
     configure_claude_status_bar || true
     configure_cursor_autostart || true
+    configure_uv_supply_chain || true
   else
     ensure_root
     for step in "${install_steps[@]}"; do
