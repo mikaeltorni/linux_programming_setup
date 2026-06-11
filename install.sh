@@ -8,7 +8,6 @@ CONFIG_DIR="$SCRIPT_DIR/configs"
 
 # ── Configuration variables (can be overridden via environment) ───────────────
 CURSOR_DEB_URL="${CURSOR_DEB_URL:-}"
-CURSOR_VERSION="${CURSOR_VERSION:-2.6.22}"
 CURSOR_EXTENSIONS_FILE="${CURSOR_EXTENSIONS_FILE:-$CONFIG_DIR/vsc_cursor_extensions}"
 
 # ── Runtime variables ────────────────────────────────────────────────────────
@@ -27,6 +26,11 @@ source "$SCRIPT_DIR/lib/uv_supply_chain.sh"
 
 # ── Main installer logic ────────────────────────────────────────────────────
 
+# main_inner — Run the installation steps. In normal mode it requires root and
+# runs every step in order; in config-only mode (ISC_APPLY_HOTKEYS_ONLY=1) it
+# applies only the editor/autostart/uv configuration, tolerating per-step
+# failures. Arguments: $@ — forwarded but currently unused. Returns: 0 on
+# success; aborts via set -e if a normal-mode step fails.
 main_inner() {
   ensure_session_bus
   
@@ -55,6 +59,10 @@ main_inner() {
   fi
 }
 
+# run_and_log_with_reboot — Wrapper around main_inner that tees all output to a
+# timestamped log under the repository-local .log/ directory, then reboots
+# unless ISC_NO_REBOOT=1 is set. Arguments: $@ — forwarded to main_inner.
+# Returns: does not return when a reboot is triggered; 0 otherwise.
 run_and_log_with_reboot() {
   local ts log_dir log_file
   ts=$(date +"%Y%m%d-%H%M%S")
