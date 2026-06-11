@@ -7,6 +7,7 @@
 #   - run_as_target(cmd...): Execute a command as the target user.
 #   - ensure_root(): Exit with error if not running as root.
 #   - ensure_session_bus(): Exit with error if session bus is missing.
+#   - log(level, msg): Centralized, timestamped, level-aware logger.
 #
 # Must be sourced after SCRIPT_DIR, CONFIG_DIR, TARGET_USER, TARGET_HOME,
 # RUNTIME_DIR, DISPLAY_VAL, USER_BUS are set.
@@ -56,13 +57,27 @@ EOF
   fi
 }
 
-# ── Logging (minimal) ────────────────────────────────────────────────────────
+# ── Logging ──────────────────────────────────────────────────────────────────
 
+# log — Centralized, timestamped logger used across the installer libraries.
+# Arguments:
+#   $1   level — one of: verbose, debug, info, warn, error. Unknown values are
+#                printed verbatim as the level label.
+#   $@   message — the remaining arguments form the log message.
+# Behaviour:
+#   - Prefixes every line with an ISO-8601 timestamp and an uppercase level.
+#   - Routes warn/error to stderr; everything else to stdout.
+# Returns: always 0.
 log() {
   local level="$1"; shift
+  local ts
+  ts="$(date +"%Y-%m-%dT%H:%M:%S%z")"
   case "$level" in
-    error) echo "ERROR: $*" >&2 ;;
-    warn)  echo "WARN: $*" >&2 ;;
-    *)     echo "$level: $*" ;;
+    error) printf "%s [ERROR] %s\n"   "$ts" "$*" >&2 ;;
+    warn)  printf "%s [WARN] %s\n"    "$ts" "$*" >&2 ;;
+    info)  printf "%s [INFO] %s\n"    "$ts" "$*" ;;
+    debug) printf "%s [DEBUG] %s\n"   "$ts" "$*" ;;
+    verbose) printf "%s [VERBOSE] %s\n" "$ts" "$*" ;;
+    *)     printf "%s [%s] %s\n" "$ts" "$level" "$*" ;;
   esac
 }
