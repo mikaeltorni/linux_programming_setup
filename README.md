@@ -29,7 +29,6 @@ sudo ISC_NO_REBOOT=1 bash install.sh
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `CURSOR_DEB_URL` | URL to Cursor .deb package | (required, must be set) |
-| `CURSOR_VERSION` | Version string for reference | `2.6.22` |
 | `CURSOR_EXTENSIONS_FILE` | Path to extensions list file | `$CONFIG_DIR/vsc_cursor_extensions` |
 | `LMSTUDIO_USER_SERVICE_NAME` | Agent Command Center LM Studio service to restart after profile changes | `lmstudio-serve.service` |
 
@@ -61,14 +60,18 @@ linux_programming_setup/
 │   ├── vsc_cursor_extensions     # VS Code/Cursor extension IDs (one per line)
 │   └── continue/
 │       └── config.yaml           # Continue AI assistant configuration
-│   └── lmstudio/
-│       └── autocomplete.env      # Continue model preload profile
+│   ├── lmstudio/
+│   │   └── autocomplete.env      # Continue model preload profile
+│   └── uv/
+│       └── uv.toml               # Global UV supply-chain config
 └── lib/
-    ├── helpers.sh                # Core utility functions
-    ├── gsettings_helpers.sh      # GSettings helper functions
-    ├── cursor_install.sh         # Cursor IDE installation
+    ├── helpers.sh                # Core utility functions and logging
+    ├── gsettings_helpers.sh      # GSettings + apt helper functions
+    ├── cursor_install.sh         # Cursor IDE installation and extensions
     ├── autostart_cursor.sh       # Cursor autostart configuration
-    └── continue_setup.sh         # Continue config and model profile deployment
+    ├── continue_setup.sh         # Continue config and model profile deployment
+    ├── claude_status_bar_setup.sh # Claude Code status bar delegation
+    └── uv_supply_chain.sh        # Global UV supply-chain protection
 ```
 
 ## Continue AI Configuration
