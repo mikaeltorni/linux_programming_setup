@@ -30,8 +30,7 @@ install_cursor() {
 
   # Install the .deb package
   if ! apt install -y "$tmpdir/cursor.deb"; then
-    log "error" "Failed to install Cursor IDE from $CURSOR_DEB_URL"
-    echo "WARNING: Failed to install Cursor IDE. Check network connectivity and try again."
+    log "error" "Failed to install Cursor IDE from $CURSOR_DEB_URL. Check network connectivity and try again."
     rm -rf "$tmpdir"
     return 1
   fi
