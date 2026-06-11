@@ -5,34 +5,30 @@
 #   - configure_cursor_autostart(): Create an autostart entry for Cursor IDE.
 #     Adds cursor to the user's autostart applications list via GSettings.
 #
-# Sourced after lib/helpers.sh, lib/gsettings_helpers.sh, and lib/autostart.sh.
-# Depends on: msg, run_as_target, TARGET_HOME, TARGET_USER
+# Sourced after lib/helpers.sh and lib/gsettings_helpers.sh.
+# Depends on: msg, log, need_cmd, append_gsettings_list
 
 # ── Cursor Autostart ─────────────────────────────────────────────────────────
 
-# configure_cursor_autostart — Create an autostart entry for Cursor IDE.
-# Adds cursor to the user's autostart applications list via GSettings.
-
+# configure_cursor_autostart — Create an autostart entry for Cursor IDE by
+# appending cursor.desktop to the target user's GSettings autostart list. The
+# write goes through append_gsettings_list (run as the target user), so it
+# reaches the user's dconf even when the installer runs as root and is
+# idempotent across repeated installs.
+# Arguments: none (reads cursor availability from PATH).
+# Returns: 0 when configured or safely skipped (cursor not installed).
 configure_cursor_autostart() {
   if ! need_cmd cursor; then
-    msg "Cursor not installed, skipping autostart configuration"
+    log "warn" "Cursor not installed, skipping autostart configuration"
     return 0
   fi
 
   msg "Configuring Cursor IDE autostart"
-  
-  # Add cursor to the autostart GSettings list (idempotent)
-  local current_autostart
-  current_autostart="$(gsettings get org.gnome.desktop.autostart enabled-apps 2>/dev/null || echo "[]")"
-  
-  # Check if cursor.desktop is already in the list
-  if echo "$current_autostart" | grep -q 'cursor\.desktop'; then
-    msg "Cursor IDE already in autostart, skipping"
-    return 0
+
+  # Append cursor.desktop to the user's autostart list (de-duplicated/idempotent).
+  if append_gsettings_list org.gnome.desktop.autostart enabled-apps cursor.desktop; then
+    msg "Cursor IDE autostart configured"
+  else
+    log "warn" "Could not update autostart list; Cursor autostart not configured"
   fi
-  
-  # Add cursor.desktop to the autostart list
-  gsettings set org.gnome.desktop.autostart enabled-apps "$(echo "$current_autostart" | sed 's/\]/, '\''cursor.desktop'\'']/')" || true
-  
-  msg "Cursor IDE autostart configured"
 }
