@@ -23,17 +23,48 @@ need_cmd() { command -v "$1" >/dev/null 2>&1; }
 # ── Run as target user ───────────────────────────────────────────────────────
 
 run_as_target() {
-  sudo -H -u "$TARGET_USER" env \
-    HOME="$TARGET_HOME" \
-    USER="$TARGET_USER" \
-    LOGNAME="$TARGET_USER" \
-    XDG_RUNTIME_DIR="$RUNTIME_DIR" \
-    DBUS_SESSION_BUS_ADDRESS="$USER_BUS" \
-    DISPLAY="$DISPLAY_VAL" \
-    "$@"
+  if [ "$(id -un)" = "$TARGET_USER" ]; then
+    env \
+      HOME="$TARGET_HOME" \
+      USER="$TARGET_USER" \
+      LOGNAME="$TARGET_USER" \
+      XDG_RUNTIME_DIR="$RUNTIME_DIR" \
+      DBUS_SESSION_BUS_ADDRESS="$USER_BUS" \
+      DISPLAY="$DISPLAY_VAL" \
+      "$@"
+  else
+    sudo -H -u "$TARGET_USER" env \
+      HOME="$TARGET_HOME" \
+      USER="$TARGET_USER" \
+      LOGNAME="$TARGET_USER" \
+      XDG_RUNTIME_DIR="$RUNTIME_DIR" \
+      DBUS_SESSION_BUS_ADDRESS="$USER_BUS" \
+      DISPLAY="$DISPLAY_VAL" \
+      "$@"
+  fi
 }
 
-# ── Root privilege check ─────────────────────────────────────────────────────
+# ── Root privilege helpers ───────────────────────────────────────────────────
+
+# is_root — Test whether the script runs with root privileges.
+is_root() { [ "$(id -u)" -eq 0 ]; }
+
+# Root-only steps skipped during a non-root run; reported at the end.
+SUDO_REQUIRED_STEPS=()
+
+# note_sudo_required — Record a skipped root-only step for the final report.
+note_sudo_required() {
+  SUDO_REQUIRED_STEPS+=("$1")
+  msg "SKIP (requires sudo): $1"
+}
+
+# report_sudo_required — Print all root-only steps skipped this run, if any.
+report_sudo_required() {
+  [ "${#SUDO_REQUIRED_STEPS[@]}" -eq 0 ] && return 0
+  msg "The following steps still require root and were skipped:"
+  printf '    - %s\n' "${SUDO_REQUIRED_STEPS[@]}"
+  msg "Apply them with: sudo bash install.sh"
+}
 
 ensure_root() {
   if [ "$(id -u)" -ne 0 ]; then

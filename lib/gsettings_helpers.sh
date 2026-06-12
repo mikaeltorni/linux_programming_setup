@@ -64,6 +64,10 @@ apt_install() {
     log "info" "Package '$pkg' already present, skipping apt install"
     return 0
   fi
+  if ! is_root; then
+    note_sudo_required "apt install $pkg"
+    return 0
+  fi
   log "info" "Installing APT package: $pkg"
   apt update -y && apt install -y "$pkg"
 }

@@ -18,6 +18,11 @@ install_cursor() {
     return
   fi
 
+  if ! is_root; then
+    note_sudo_required "install Cursor IDE .deb (apt install)"
+    return 0
+  fi
+
   msg "Installing Cursor IDE"
   apt_install curl wget
 

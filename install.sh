@@ -45,18 +45,17 @@ main_inner() {
 
   if [[ "${ISC_APPLY_HOTKEYS_ONLY:-0}" == "1" ]]; then
     msg "=== LPS CONFIG-ONLY MODE ==="
-    ensure_root
     # In config-only mode, apply editor and autostart configuration.
     configure_continue || true
     configure_claude_status_bar || true
     configure_cursor_autostart || true
     configure_uv_supply_chain || true
   else
-    ensure_root
     for step in "${install_steps[@]}"; do
       "$step"
     done
   fi
+  report_sudo_required
 }
 
 # run_and_log_with_reboot — Wrapper around main_inner that tees all output to a
@@ -75,6 +74,8 @@ run_and_log_with_reboot() {
 
   if [[ "${ISC_NO_REBOOT:-0}" == "1" ]]; then
     msg "Skipping reboot due to ISC_NO_REBOOT=1"
+  elif [ "$(id -u)" -ne 0 ]; then
+    msg "Done. Log out and back in for changes to take effect (reboot skipped in user mode)."
   else
     msg "Rebooting now in 10 seconds. Press Ctrl+C to cancel."
     sleep 10
