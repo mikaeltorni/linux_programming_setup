@@ -1,5 +1,7 @@
 # Linux Programming Setup
 
+> Part of [installation_scripts](https://github.com/mikaeltorni/installation_scripts) — the master installer that orchestrates a productivity-focused Ubuntu 24.04 desktop setup (workspaces, hotkeys, window tiling, programming tools, and more).
+
 Cursor IDE installation, VS Code extension management, and Continue AI assistant configuration.
 
 Installer run logs are written to the repository-local `.log/` directory.
