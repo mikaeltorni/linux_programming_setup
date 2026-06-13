@@ -17,6 +17,7 @@ USER_BUS="unix:path=${RUNTIME_DIR}/bus"
 
 # ── Library includes ────────────────────────────────────────────────────────
 source "$SCRIPT_DIR/lib/helpers.sh"
+source "$SCRIPT_DIR/lib/apt_helpers.sh"
 source "$SCRIPT_DIR/lib/gsettings_helpers.sh"
 source "$SCRIPT_DIR/lib/cursor_install.sh"
 source "$SCRIPT_DIR/lib/autostart_cursor.sh"

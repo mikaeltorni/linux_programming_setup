@@ -5,7 +5,8 @@
 #   - install_cursor(): Download and install Cursor IDE from .deb package.
 #   - install_cursor_extensions(): Install extensions listed in CURSOR_EXTENSIONS_FILE.
 #
-# Sourced after lib/helpers.sh. Depends on: msg, need_cmd, apt_install, log, run_as_target
+# Sourced after lib/helpers.sh and lib/apt_helpers.sh.
+# Depends on: msg, need_cmd, apt_install, log, run_as_target.
 # Requires variables: CURSOR_DEB_URL, CURSOR_EXTENSIONS_FILE, TARGET_HOME, TARGET_USER
 
 # ── Cursor IDE ───────────────────────────────────────────────────────────────

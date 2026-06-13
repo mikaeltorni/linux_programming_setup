@@ -4,7 +4,6 @@
 # Components:
 #   - user_gsettings(args...): Run gsettings as the target user.
 #   - append_gsettings_list(schema, key, value): Append a value to a list (idempotent).
-#   - apt_install(pkg): Install an APT package if its command is missing.
 #
 # Sourced after lib/helpers.sh. Depends on: need_cmd, run_as_target.
 
@@ -50,24 +49,4 @@ print("[" + ", ".join(repr(str(item)) for item in cur) + "]")
 PY
 )"
   user_gsettings set "$schema" "$key" "$newlist"
-}
-
-# ── APT helpers ──────────────────────────────────────────────────────────────
-
-# apt_install — Install an APT package, skipping the work when its command-line
-# entry point already exists on PATH (idempotent).
-# Arguments: $1 pkg — package name, which is also assumed to be the command name.
-# Returns: 0 if already present or installed successfully; non-zero on apt error.
-apt_install() {
-  local pkg="$1"
-  if need_cmd "$pkg"; then
-    log "info" "Package '$pkg' already present, skipping apt install"
-    return 0
-  fi
-  if ! is_root; then
-    note_sudo_required "apt install $pkg"
-    return 0
-  fi
-  log "info" "Installing APT package: $pkg"
-  apt update -y && apt install -y "$pkg"
 }

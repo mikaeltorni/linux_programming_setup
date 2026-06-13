@@ -67,8 +67,9 @@ linux_programming_setup/
 │   └── uv/
 │       └── uv.toml               # Global UV supply-chain config
 └── lib/
+    ├── apt_helpers.sh            # Root-optional APT package installation
     ├── helpers.sh                # Core utility functions and logging
-    ├── gsettings_helpers.sh      # GSettings + apt helper functions
+    ├── gsettings_helpers.sh      # GSettings list manipulation helpers
     ├── cursor_install.sh         # Cursor IDE installation and extensions
     ├── autostart_cursor.sh       # Cursor autostart configuration
     ├── continue_setup.sh         # Continue config and model profile deployment
