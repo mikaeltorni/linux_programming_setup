@@ -24,6 +24,7 @@ source "$SCRIPT_DIR/lib/autostart_cursor.sh"
 source "$SCRIPT_DIR/lib/continue_setup.sh"
 source "$SCRIPT_DIR/lib/claude_status_bar_setup.sh"
 source "$SCRIPT_DIR/lib/uv_supply_chain.sh"
+source "$SCRIPT_DIR/lib/installer_runtime.sh"
 
 # ── Main installer logic ────────────────────────────────────────────────────
 
@@ -57,31 +58,6 @@ main_inner() {
     done
   fi
   report_sudo_required
-}
-
-# run_and_log_with_reboot — Wrapper around main_inner that tees all output to a
-# timestamped log under the repository-local .log/ directory, then reboots
-# unless ISC_NO_REBOOT=1 is set. Arguments: $@ — forwarded to main_inner.
-# Returns: does not return when a reboot is triggered; 0 otherwise.
-run_and_log_with_reboot() {
-  local ts log_dir log_file
-  ts=$(date +"%Y%m%d-%H%M%S")
-  log_dir="$SCRIPT_DIR/.log"
-  mkdir -p "$log_dir"
-  log_file="$log_dir/linux_programming_setup-$ts.log"
-
-  main_inner "$@" 2>&1 | tee "$log_file"
-  msg "All done. Log file written to: $log_file"
-
-  if [[ "${ISC_NO_REBOOT:-0}" == "1" ]]; then
-    msg "Skipping reboot due to ISC_NO_REBOOT=1"
-  elif [ "$(id -u)" -ne 0 ]; then
-    msg "Done. Log out and back in for changes to take effect (reboot skipped in user mode)."
-  else
-    msg "Rebooting now in 10 seconds. Press Ctrl+C to cancel."
-    sleep 10
-    reboot
-  fi
 }
 
 # Only run the main installer if the script is executed, not sourced.

@@ -74,7 +74,8 @@ linux_programming_setup/
     ├── autostart_cursor.sh       # Cursor autostart configuration
     ├── continue_setup.sh         # Continue config and model profile deployment
     ├── claude_status_bar_setup.sh # Claude Code status bar delegation
-    └── uv_supply_chain.sh        # Global UV supply-chain protection
+    ├── uv_supply_chain.sh        # Global UV supply-chain protection
+    └── installer_runtime.sh      # Installer logging and reboot policy
 ```
 
 ## Continue AI Configuration
