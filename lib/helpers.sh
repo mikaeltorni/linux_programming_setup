@@ -5,7 +5,6 @@
 #   - msg(msg): User-facing message with arrow prefix.
 #   - need_cmd(cmd): Check if a command exists in PATH.
 #   - run_as_target(cmd...): Execute a command as the target user.
-#   - ensure_root(): Exit with error if not running as root.
 #   - ensure_session_bus(): Exit with error if session bus is missing.
 #   - log(level, msg): Centralized, timestamped, level-aware logger.
 #
@@ -64,14 +63,6 @@ report_sudo_required() {
   msg "The following steps still require root and were skipped:"
   printf '    - %s\n' "${SUDO_REQUIRED_STEPS[@]}"
   msg "Apply them with: sudo bash install.sh"
-}
-
-ensure_root() {
-  if [ "$(id -u)" -ne 0 ]; then
-    log "error" "Please run with sudo: sudo bash $0"
-    echo "Please run with sudo: sudo bash $0"
-    exit 1
-  fi
 }
 
 # ── Session bus check ────────────────────────────────────────────────────────
