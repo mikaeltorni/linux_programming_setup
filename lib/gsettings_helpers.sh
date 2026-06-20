@@ -7,6 +7,8 @@
 #
 # Sourced after lib/helpers.sh. Depends on: need_cmd, run_as_target.
 
+PROGRAMMING_GSETTINGS_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 # ── GSettings wrapper ────────────────────────────────────────────────────────
 
 # user_gsettings — Run the gsettings command as the target user so reads and
@@ -17,7 +19,7 @@ user_gsettings() {
   run_as_target gsettings "$@"
 }
 
-# ── List manipulation (uses Python for safe parsing) ────────────────────────
+# ── List manipulation ────────────────────────────────────────────────────────
 
 # append_gsettings_list — Append a value to a GSettings array key, de-duplicating
 # existing entries so repeated runs are idempotent.
@@ -30,23 +32,6 @@ append_gsettings_list() {
   local schema="$1" key="$2" value="$3"
   local current newlist
   current="$(user_gsettings get "$schema" "$key" 2>/dev/null || echo "[]")"
-  newlist="$(VAL="$value" CURRENT="$current" python3 - <<'PY'
-import ast, os
-cur_raw = os.environ.get("CURRENT", "").strip()
-if cur_raw.startswith("@as "):
-    cur_raw = cur_raw[4:].strip()
-try:
-    cur = ast.literal_eval(cur_raw) if cur_raw else []
-except Exception:
-    cur = []
-if not isinstance(cur, list):
-    cur = []
-cur = list(dict.fromkeys(str(item) for item in cur))
-val = os.environ.get("VAL", "")
-if val and val not in cur:
-    cur.append(val)
-print("[" + ", ".join(repr(str(item)) for item in cur) + "]")
-PY
-)"
+  newlist="$(CURRENT="$current" python3 "$PROGRAMMING_GSETTINGS_LIB_DIR/gsettings_strv.py" "$value")"
   user_gsettings set "$schema" "$key" "$newlist"
 }
