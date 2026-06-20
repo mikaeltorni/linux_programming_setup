@@ -24,10 +24,12 @@ configure_cursor_autostart() {
   fi
 
   msg "Configuring Cursor IDE autostart"
+  log "info" "Appending cursor.desktop to org.gnome.desktop.autostart enabled-apps"
 
   # Append cursor.desktop to the user's autostart list (de-duplicated/idempotent).
   if append_gsettings_list org.gnome.desktop.autostart enabled-apps cursor.desktop; then
     msg "Cursor IDE autostart configured"
+    log "info" "Cursor IDE autostart configured"
   else
     log "warn" "Could not update autostart list; Cursor autostart not configured"
   fi

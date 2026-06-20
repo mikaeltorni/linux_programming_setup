@@ -21,5 +21,6 @@ configure_claude_status_bar() {
   fi
 
   msg "Configuring Claude Code status bar"
+  log "info" "Delegating to claude_code_status_bar installer: $installer"
   TARGET_USER="$TARGET_USER" bash "$installer"
 }

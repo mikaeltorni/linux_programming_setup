@@ -26,6 +26,7 @@ def test_configure_continue_installs_editor_config_and_model_profile():
                         f"TARGET_HOME={str(home)!r}",
                         f"CONFIG_DIR={str(ROOT_DIR / 'configs')!r}",
                         "msg() { :; }",
+                        "log() { :; }",
                         "run_as_target() { \"$@\"; }",
                         "source lib/continue_setup.sh",
                         "configure_continue",

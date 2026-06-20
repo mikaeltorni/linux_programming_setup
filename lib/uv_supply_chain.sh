@@ -15,6 +15,7 @@ configure_uv_supply_chain() {
   local uv_config_dir="$TARGET_HOME/.config/uv"
 
   msg "Installing global UV supply-chain config (rolling 24-hour cutoff)"
+  log "info" "Deploying UV config: $CONFIG_DIR/uv/uv.toml -> $uv_config_dir/uv.toml"
   run_as_target install -D -m 0644 \
     "$CONFIG_DIR/uv/uv.toml" \
     "$uv_config_dir/uv.toml"

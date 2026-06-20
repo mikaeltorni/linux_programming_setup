@@ -17,6 +17,7 @@ install_continue_config() {
   local continue_dir="$TARGET_HOME/.continue"
 
   msg "Installing Continue configuration"
+  log "info" "Deploying Continue config: $CONFIG_DIR/continue/config.yaml -> $continue_dir/config.yaml"
   run_as_target install -D -m 0644 \
     "$CONFIG_DIR/continue/config.yaml" \
     "$continue_dir/config.yaml"
@@ -31,6 +32,7 @@ install_lmstudio_autocomplete_profile() {
   local service_name="${LMSTUDIO_USER_SERVICE_NAME:-lmstudio-serve.service}"
 
   msg "Installing LM Studio autocomplete profile"
+  log "info" "Deploying LM Studio profile: $CONFIG_DIR/lmstudio/autocomplete.env -> $profile_dir/autocomplete.env"
   run_as_target install -D -m 0644 \
     "$CONFIG_DIR/lmstudio/autocomplete.env" \
     "$profile_dir/autocomplete.env"
@@ -38,6 +40,7 @@ install_lmstudio_autocomplete_profile() {
   # Agent Command Center owns the shared LM Studio service. Restart it when it
   # is already installed so a standalone programming-setup run takes effect.
   if [ -f "$TARGET_HOME/.config/systemd/user/$service_name" ]; then
+    log "info" "Restarting $service_name to apply the new autocomplete profile"
     run_as_target systemctl --user restart "$service_name" || \
       log "warn" "Could not restart $service_name; profile applies on next login."
   fi
@@ -47,6 +50,7 @@ install_lmstudio_autocomplete_profile() {
 # LM Studio autocomplete profile in order.
 # Arguments: none. Returns: 0 on success.
 configure_continue() {
+  log "info" "Configuring Continue (editor config + LM Studio autocomplete profile)"
   install_continue_config
   install_lmstudio_autocomplete_profile
 }
