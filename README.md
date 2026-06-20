@@ -6,6 +6,24 @@ Cursor IDE installation, VS Code extension management, and Continue AI assistant
 
 Installer run logs are written to the repository-local `.log/` directory.
 
+## Repository dependencies
+
+This repository installs and runs **standalone**; sibling repositories only
+enhance it and never block installation when absent.
+
+- **Build-time (soft):** the shared installer component framework
+  [`linux_installation_scripts_functions`](https://github.com/mikaeltorni/linux_installation_scripts_functions) —
+  loaded from a sibling checkout when present, otherwise downloaded on demand.
+- **Delegated/wired asset (optional):** when it sits beside it, this installer
+  wires the
+  [`claude_code_status_bar`](https://github.com/mikaeltorni/claude_code_status_bar)
+  status-line command into `~/.claude/settings.json`. If that checkout is
+  missing, the status bar is skipped — the rest of the programming setup still
+  installs.
+
+See the full cross-repository map in
+[installation_scripts/DEPENDENCIES.md](https://github.com/mikaeltorni/installation_scripts/blob/master/DEPENDENCIES.md).
+
 ## Features
 
 - **Cursor IDE**: Downloads and installs the Cursor IDE .deb package
