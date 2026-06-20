@@ -21,6 +21,12 @@ need_cmd() { command -v "$1" >/dev/null 2>&1; }
 
 # ── Run as target user ───────────────────────────────────────────────────────
 
+# run_as_target — Execute a command in the target user's desktop session,
+# exporting HOME, USER, LOGNAME, XDG_RUNTIME_DIR, DBUS_SESSION_BUS_ADDRESS and
+# DISPLAY so the command reaches the user's dconf/session. Runs directly when
+# already the target user, otherwise via `sudo -H -u`.
+# Arguments: $@ — the command and its arguments, run verbatim.
+# Returns: the exit status of the executed command.
 run_as_target() {
   if [ "$(id -un)" = "$TARGET_USER" ]; then
     env \
@@ -67,6 +73,10 @@ report_sudo_required() {
 
 # ── Session bus check ────────────────────────────────────────────────────────
 
+# ensure_session_bus — Verify the target user's D-Bus session socket exists at
+# ${RUNTIME_DIR}/bus before any gsettings/dconf writes are attempted.
+# Arguments: none (reads RUNTIME_DIR and TARGET_USER from the environment).
+# Returns: 0 when the socket exists; logs an error and exits 1 otherwise.
 ensure_session_bus() {
   if [ ! -S "${RUNTIME_DIR}/bus" ]; then
     log "error" "No user session bus at ${RUNTIME_DIR}/bus"
