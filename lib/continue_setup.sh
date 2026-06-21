@@ -4,11 +4,13 @@
 #
 # Components:
 #   - install_continue_config(): Deploy ~/.continue/config.yaml.
+#   - ensure_lmstudio_qwen_coder(): Install only the qwen-coder model via
+#     linux_lmstudio_local_agents (the owner of LM Studio serving).
 #   - install_lmstudio_autocomplete_profile(): Deploy the LM Studio model profile.
-#   - configure_continue(): Orchestrate both deployments.
+#   - configure_continue(): Orchestrate the deployments.
 #
 # Sourced after lib/helpers.sh. Depends on: msg, log, run_as_target.
-# Requires variables: TARGET_HOME, CONFIG_DIR.
+# Requires variables: TARGET_HOME, CONFIG_DIR, TARGET_USER.
 
 # install_continue_config — Copy the repository's Continue config.yaml into the
 # target user's ~/.continue directory (creating it with 0644 perms).
@@ -21,6 +23,27 @@ install_continue_config() {
   run_as_target install -D -m 0644 \
     "$CONFIG_DIR/continue/config.yaml" \
     "$continue_dir/config.yaml"
+}
+
+# ensure_lmstudio_qwen_coder — Install only the qwen-coder model that Continue
+# autocomplete depends on, via the linux_lmstudio_local_agents repository (the
+# owner of LM Studio serving). Cloned alongside this repo under
+# $TARGET_HOME/projects by the master installer; no-op (with a warning) when it
+# is absent so a standalone programming-setup run never fails.
+# Arguments: none. Requires variable: TARGET_USER, TARGET_HOME.
+ensure_lmstudio_qwen_coder() {
+  local repo_dir="$TARGET_HOME/projects/linux_lmstudio_local_agents"
+  local installer="$repo_dir/install.sh"
+
+  if [[ ! -f "$installer" ]]; then
+    log "warn" "linux_lmstudio_local_agents not found at $repo_dir; skipping qwen-coder model install."
+    return 0
+  fi
+
+  msg "Installing the qwen-coder autocomplete model via linux_lmstudio_local_agents"
+  log "info" "Delegating to LM Studio local-agents installer (qwen-coder model only)"
+  TARGET_USER="$TARGET_USER" LMSTUDIO_INSTALL_MODELS="qwen-coder" \
+    bash "$installer" --default
 }
 
 # install_lmstudio_autocomplete_profile — Deploy the LM Studio autocomplete
@@ -37,8 +60,9 @@ install_lmstudio_autocomplete_profile() {
     "$CONFIG_DIR/lmstudio/autocomplete.env" \
     "$profile_dir/autocomplete.env"
 
-  # Agent Command Center owns the shared LM Studio service. Restart it when it
-  # is already installed so a standalone programming-setup run takes effect.
+  # linux_lmstudio_local_agents owns the shared LM Studio service. Restart it
+  # when it is already installed so a standalone programming-setup run takes
+  # effect.
   if [ -f "$TARGET_HOME/.config/systemd/user/$service_name" ]; then
     log "info" "Restarting $service_name to apply the new autocomplete profile"
     run_as_target systemctl --user restart "$service_name" || \
@@ -50,7 +74,8 @@ install_lmstudio_autocomplete_profile() {
 # LM Studio autocomplete profile in order.
 # Arguments: none. Returns: 0 on success.
 configure_continue() {
-  log "info" "Configuring Continue (editor config + LM Studio autocomplete profile)"
+  log "info" "Configuring Continue (editor config + qwen-coder model + LM Studio autocomplete profile)"
   install_continue_config
+  ensure_lmstudio_qwen_coder
   install_lmstudio_autocomplete_profile
 }
