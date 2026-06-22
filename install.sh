@@ -40,17 +40,9 @@ source "$SCRIPT_DIR/lib/claude_status_bar_setup.sh"
 source "$SCRIPT_DIR/lib/uv_supply_chain.sh"
 source "$SCRIPT_DIR/lib/installer_runtime.sh"
 
-# Component selection runtime and this repository's component manifest.
-# Load the shared installer component framework. Its single source of truth is
-# the linux_installation_scripts_functions repository (cloned as a sibling by
-# installation_scripts, or downloaded on demand) -- no per-repo vendored copy.
-for __isc_d in "${ISC_FUNCTIONS_DIR:-}" \
-               "$SCRIPT_DIR/../linux_installation_scripts_functions" \
-               "$HOME/projects/linux_installation_scripts_functions"; do
-  [ -n "$__isc_d" ] && [ -f "$__isc_d/component_loader.sh" ] && { source "$__isc_d/component_loader.sh"; break; }
-done
-declare -F isc_activate_components >/dev/null 2>&1 || \
-  source <(curl -fsSL "https://raw.githubusercontent.com/mikaeltorni/linux_installation_scripts_functions/${ISC_FUNCTIONS_REF:-master}/component_loader.sh")
+# Component selection runtime and this repository's component manifest. The
+# framework was already resolved above (for isc_load_helpers); activate the
+# component runtime from the same checkout.
 isc_activate_components
 source "$SCRIPT_DIR/installer/components.sh"
 
