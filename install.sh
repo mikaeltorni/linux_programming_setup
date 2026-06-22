@@ -16,8 +16,22 @@ DISPLAY_VAL="${DISPLAY:-:0}"
 USER_BUS="unix:path=${RUNTIME_DIR}/bus"
 
 # ── Library includes ────────────────────────────────────────────────────────
-source "$SCRIPT_DIR/lib/helpers.sh"
-source "$SCRIPT_DIR/lib/apt_helpers.sh"
+source "$SCRIPT_DIR/lib/helpers.sh"   # repo logger (log); sourced before shared helpers
+
+# Load the shared installer framework + shared install-time helpers (single
+# source of truth in linux_installation_scripts_functions) before any library
+# uses run_as_target/msg/need_cmd. No vendored copy: resolve a sibling checkout
+# or download on demand.
+for __isc_d in "${ISC_FUNCTIONS_DIR:-}" \
+               "$SCRIPT_DIR/../linux_installation_scripts_functions" \
+               "$HOME/projects/linux_installation_scripts_functions"; do
+  [ -n "$__isc_d" ] && [ -f "$__isc_d/component_loader.sh" ] && { source "$__isc_d/component_loader.sh"; break; }
+done
+declare -F isc_load_helpers >/dev/null 2>&1 || \
+  source <(curl -fsSL "https://raw.githubusercontent.com/mikaeltorni/linux_installation_scripts_functions/${ISC_FUNCTIONS_REF:-master}/component_loader.sh")
+isc_load_helpers
+
+source "$SCRIPT_DIR/lib/apt_helpers.sh"   # repo-specific apt_install (overrides shared)
 source "$SCRIPT_DIR/lib/gsettings_helpers.sh"
 source "$SCRIPT_DIR/lib/cursor_install.sh"
 source "$SCRIPT_DIR/lib/autostart_cursor.sh"
