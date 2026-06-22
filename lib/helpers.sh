@@ -1,95 +1,15 @@
 #!/usr/bin/env bash
-# helpers.sh — Core utility functions sourced by install.sh
+# helpers.sh — Programming-setup-specific logger.
 #
-# Components:
-#   - msg(msg): User-facing message with arrow prefix.
-#   - need_cmd(cmd): Check if a command exists in PATH.
-#   - run_as_target(cmd...): Execute a command as the target user.
-#   - ensure_session_bus(): Exit with error if session bus is missing.
-#   - log(level, msg): Centralized, timestamped, level-aware logger.
+# The shared install-time helpers (msg, need_cmd, is_root, run_as_target,
+# ensure_session_bus, and the sudo-skip reporting) now live in the framework's
+# installer_helpers.sh and are loaded by install.sh via isc_load_helpers (single
+# source of truth: linux_installation_scripts_functions). This file keeps only
+# this repository's logger, which is sourced before the shared helpers so they
+# emit through it.
 #
 # Must be sourced after SCRIPT_DIR, CONFIG_DIR, TARGET_USER, TARGET_HOME,
 # RUNTIME_DIR, DISPLAY_VAL, USER_BUS are set.
-
-# ── User-facing messages ─────────────────────────────────────────────────────
-
-msg() { printf "\n==> %s\n" "$*"; }
-
-# ── Command availability check ───────────────────────────────────────────────
-
-need_cmd() { command -v "$1" >/dev/null 2>&1; }
-
-# ── Run as target user ───────────────────────────────────────────────────────
-
-# run_as_target — Execute a command in the target user's desktop session,
-# exporting HOME, USER, LOGNAME, XDG_RUNTIME_DIR, DBUS_SESSION_BUS_ADDRESS and
-# DISPLAY so the command reaches the user's dconf/session. Runs directly when
-# already the target user, otherwise via `sudo -H -u`.
-# Arguments: $@ — the command and its arguments, run verbatim.
-# Returns: the exit status of the executed command.
-run_as_target() {
-  if [ "$(id -un)" = "$TARGET_USER" ]; then
-    env \
-      HOME="$TARGET_HOME" \
-      USER="$TARGET_USER" \
-      LOGNAME="$TARGET_USER" \
-      XDG_RUNTIME_DIR="$RUNTIME_DIR" \
-      DBUS_SESSION_BUS_ADDRESS="$USER_BUS" \
-      DISPLAY="$DISPLAY_VAL" \
-      "$@"
-  else
-    sudo -H -u "$TARGET_USER" env \
-      HOME="$TARGET_HOME" \
-      USER="$TARGET_USER" \
-      LOGNAME="$TARGET_USER" \
-      XDG_RUNTIME_DIR="$RUNTIME_DIR" \
-      DBUS_SESSION_BUS_ADDRESS="$USER_BUS" \
-      DISPLAY="$DISPLAY_VAL" \
-      "$@"
-  fi
-}
-
-# ── Root privilege helpers ───────────────────────────────────────────────────
-
-# is_root — Test whether the script runs with root privileges.
-is_root() { [ "$(id -u)" -eq 0 ]; }
-
-# Root-only steps skipped during a non-root run; reported at the end.
-SUDO_REQUIRED_STEPS=()
-
-# note_sudo_required — Record a skipped root-only step for the final report.
-note_sudo_required() {
-  SUDO_REQUIRED_STEPS+=("$1")
-  msg "SKIP (requires sudo): $1"
-}
-
-# report_sudo_required — Print all root-only steps skipped this run, if any.
-report_sudo_required() {
-  [ "${#SUDO_REQUIRED_STEPS[@]}" -eq 0 ] && return 0
-  msg "The following steps still require root and were skipped:"
-  printf '    - %s\n' "${SUDO_REQUIRED_STEPS[@]}"
-  msg "Apply them with: sudo bash install.sh"
-}
-
-# ── Session bus check ────────────────────────────────────────────────────────
-
-# ensure_session_bus — Verify the target user's D-Bus session socket exists at
-# ${RUNTIME_DIR}/bus before any gsettings/dconf writes are attempted.
-# Arguments: none (reads RUNTIME_DIR and TARGET_USER from the environment).
-# Returns: 0 when the socket exists; logs an error and exits 1 otherwise.
-ensure_session_bus() {
-  if [ ! -S "${RUNTIME_DIR}/bus" ]; then
-    log "error" "No user session bus at ${RUNTIME_DIR}/bus"
-    cat <<EOF
-No user session bus at ${RUNTIME_DIR}/bus.
-Open a terminal in ${TARGET_USER}'s *logged-in desktop* session and run:
-  sudo bash $0
-EOF
-    exit 1
-  fi
-}
-
-# ── Logging ──────────────────────────────────────────────────────────────────
 
 # log — Centralized, timestamped logger used across the installer libraries.
 # Arguments:
