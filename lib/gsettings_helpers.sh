@@ -22,7 +22,9 @@ user_gsettings() {
 # ── List manipulation ────────────────────────────────────────────────────────
 
 # append_gsettings_list — Append a value to a GSettings array key, de-duplicating
-# existing entries so repeated runs are idempotent.
+# existing entries so repeated runs are idempotent. If the current key cannot be
+# read, abort before writing so an unavailable schema/session cannot overwrite
+# existing user state with a synthetic empty list.
 # Arguments:
 #   $1 schema — GSettings schema id (e.g. org.gnome.desktop.autostart).
 #   $2 key    — the array-valued key to update.
@@ -31,7 +33,10 @@ user_gsettings() {
 append_gsettings_list() {
   local schema="$1" key="$2" value="$3"
   local current newlist
-  current="$(user_gsettings get "$schema" "$key" 2>/dev/null || echo "[]")"
+  if ! current="$(user_gsettings get "$schema" "$key" 2>/dev/null)"; then
+    log "warn" "Could not read GSettings key $schema $key; leaving it unchanged"
+    return 1
+  fi
   newlist="$(CURRENT="$current" python3 "$PROGRAMMING_GSETTINGS_LIB_DIR/gsettings_strv.py" "$value")"
   user_gsettings set "$schema" "$key" "$newlist"
 }

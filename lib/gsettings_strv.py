@@ -11,6 +11,12 @@ from __future__ import annotations
 import ast
 import os
 import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from logging_utils import get_logger, log_call
+
+LOGGER = get_logger("linux_programming_setup.gsettings_strv", "python.log")
 
 
 def parse_strv(raw: str | None) -> list[str]:
@@ -43,10 +49,12 @@ def format_strv(values: list[str]) -> str:
     return "[" + ", ".join(repr(str(item)) for item in values) + "]"
 
 
+@log_call(LOGGER)
 def main(argv: list[str] | None = None) -> int:
     """CLI entrypoint used by ``gsettings_helpers.sh``."""
     args = list(sys.argv[1:] if argv is None else argv)
     if len(args) != 1:
+        LOGGER.error("Expected exactly one gsettings value argument; got %d", len(args))
         print("Usage: gsettings_strv.py <value>", file=sys.stderr)
         return 2
 
