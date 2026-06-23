@@ -88,6 +88,8 @@ linux_programming_setup/
     ├── apt_helpers.sh            # Root-optional APT package installation
     ├── helpers.sh                # Core utility functions and logging
     ├── gsettings_helpers.sh      # GSettings list manipulation helpers
+    ├── gsettings_strv.py         # GSettings string-array parser/formatter
+    ├── logging_utils.py          # Centralized Python logging helper
     ├── cursor_install.sh         # Cursor IDE installation and extensions
     ├── autostart_cursor.sh       # Cursor autostart configuration
     ├── continue_setup.sh         # Continue config and model profile deployment
@@ -150,7 +152,6 @@ or none, and **Enter** installs the selection. Components:
 | `claude_status_bar` | Claude Code status bar wiring | on |
 | `cursor_autostart` | Cursor autostart entry | on |
 | `uv_supply_chain` | UV supply-chain protection | on |
-
 
 ## Disclaimer
 
