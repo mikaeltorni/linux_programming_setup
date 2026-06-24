@@ -22,5 +22,9 @@ configure_claude_status_bar() {
 
   msg "Configuring Claude Code status bar"
   log "info" "Delegating to claude_code_status_bar installer: $installer"
-  TARGET_USER="$TARGET_USER" bash "$installer"
+  # claude_code_status_bar is component-based; pass --default so this delegated
+  # run installs the core plus every default-on segment non-interactively
+  # (never opening its submenu) regardless of whether programming-setup itself
+  # was started from a TTY.
+  TARGET_USER="$TARGET_USER" bash "$installer" --default
 }
