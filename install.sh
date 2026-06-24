@@ -38,6 +38,7 @@ source "$SCRIPT_DIR/lib/autostart_cursor.sh"
 source "$SCRIPT_DIR/lib/continue_setup.sh"
 source "$SCRIPT_DIR/lib/claude_status_bar_setup.sh"
 source "$SCRIPT_DIR/lib/uv_supply_chain.sh"
+source "$SCRIPT_DIR/lib/tmux_config.sh"
 source "$SCRIPT_DIR/lib/installer_runtime.sh"
 
 # Component selection runtime and this repository's component manifest. The
@@ -62,6 +63,7 @@ main_inner() {
     configure_claude_status_bar || true
     configure_cursor_autostart || true
     configure_uv_supply_chain || true
+    configure_tmux || true
     report_sudo_required
     return 0
   fi

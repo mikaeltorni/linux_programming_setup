@@ -30,6 +30,7 @@ See the full cross-repository map in
 - **VS Code Extensions**: Installs extensions listed in `configs/vsc_cursor_extensions`
 - **Continue AI**: Installs Continue config and its CPU-resident Qwen 2.5 Coder LM Studio profile
 - **Autostart**: Configures Cursor IDE to launch on login
+- **tmux**: Installs a shared `~/.tmux.conf` (mouse support, large scrollback, vi mode-keys)
 
 ## Installation
 
@@ -77,6 +78,7 @@ linux_programming_setup/
 ├── README.md                     # This file
 ├── LICENSE.md                    # MIT License
 ├── configs/
+│   ├── .tmux.conf                # tmux user configuration
 │   ├── vsc_cursor_extensions     # VS Code/Cursor extension IDs (one per line)
 │   └── continue/
 │       └── config.yaml           # Continue AI assistant configuration
@@ -95,6 +97,7 @@ linux_programming_setup/
     ├── continue_setup.sh         # Continue config and model profile deployment
     ├── claude_status_bar_setup.sh # Claude Code status bar delegation
     ├── uv_supply_chain.sh        # Global UV supply-chain protection
+    ├── tmux_config.sh            # tmux user configuration deployment
     └── installer_runtime.sh      # Installer logging and reboot policy
 ```
 
@@ -152,6 +155,7 @@ or none, and **Enter** installs the selection. Components:
 | `claude_status_bar` | Claude Code status bar wiring | on |
 | `cursor_autostart` | Cursor autostart entry | on |
 | `uv_supply_chain` | UV supply-chain protection | on |
+| `tmux` | tmux configuration | on |
 
 ## Disclaimer
 

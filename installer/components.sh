@@ -21,4 +21,5 @@ ISC_COMPONENTS=(
   "claude_status_bar|Claude Code status bar wiring|on|configure_claude_status_bar"
   "cursor_autostart|Cursor autostart entry|on|configure_cursor_autostart"
   "uv_supply_chain|UV supply-chain protection|on|configure_uv_supply_chain"
+  "tmux|tmux configuration|on|configure_tmux"
 )
