@@ -24,10 +24,9 @@ detect_claude_status_bar() {
   [ -f "$f" ] && grep -q '"statusLine"' "$f" 2>/dev/null
 }
 
-# detect_cursor_autostart - true when cursor.desktop is in the autostart list.
+# detect_cursor_autostart - true when Cursor's autostart desktop file exists.
 detect_cursor_autostart() {
-  run_as_target gsettings get org.gnome.desktop.autostart enabled-apps 2>/dev/null \
-    | grep -q "cursor.desktop"
+  [ -f "$TARGET_HOME/.config/autostart/cursor.desktop" ]
 }
 
 # detect_uv_supply_chain - true when the machine-wide uv.toml cutoff is deployed.
@@ -81,25 +80,10 @@ if data.pop("statusLine", None) is not None:
 PY
 }
 
-# uninstall_cursor_autostart - drop cursor.desktop from the autostart list.
+# uninstall_cursor_autostart - remove Cursor's autostart desktop file.
 uninstall_cursor_autostart() {
-  msg "Removing cursor.desktop from autostart"
-  local current
-  current="$(run_as_target gsettings get org.gnome.desktop.autostart enabled-apps 2>/dev/null || printf '[]')"
-  local filtered
-  filtered="$(CURRENT="$current" python3 - <<'PY'
-import ast, os
-raw=os.environ.get("CURRENT","[]").strip() or "[]"
-try:
-    items=ast.literal_eval(raw)
-    if not isinstance(items,list): items=[]
-except Exception:
-    items=[]
-items=[x for x in items if x!="cursor.desktop"]
-print("["+", ".join("'"+x+"'" for x in items)+"]")
-PY
-)"
-  run_as_target gsettings set org.gnome.desktop.autostart enabled-apps "$filtered" 2>/dev/null || true
+  msg "Removing Cursor autostart desktop entry"
+  run_as_target rm -f "$TARGET_HOME/.config/autostart/cursor.desktop"
 }
 
 # uninstall_uv_supply_chain - remove the machine-wide uv.toml cutoff config.

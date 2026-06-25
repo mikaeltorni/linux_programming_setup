@@ -36,18 +36,17 @@ install_cursor || fail "install_cursor failed in user mode"
 [ "${SUDO_NOTES[0]}" = "install Cursor IDE .deb (apt install)" ] ||
   fail "missing sudo-required note in user mode"
 
-# Root run with an empty CURSOR_DEB_URL must abort cleanly before installing
-# curl/wget, returning non-zero with an explanatory error log.
+# Root run with an empty CURSOR_DEB_URL must skip cleanly before installing
+# curl/wget, returning success so optional Cursor absence does not abort the
+# rest of the programming setup.
 need_cmd() { return 1; }
 is_root() { return 0; }
 APT_CALLS=()
 LOG_MESSAGES=()
 CURSOR_DEB_URL=""
-if install_cursor; then
-  fail "install_cursor succeeded with an empty CURSOR_DEB_URL"
-fi
+install_cursor || fail "install_cursor failed with an empty CURSOR_DEB_URL"
 [ "${#APT_CALLS[@]}" -eq 0 ] || fail "apt ran despite an unset CURSOR_DEB_URL"
-printf '%s\n' "${LOG_MESSAGES[@]}" | grep -q 'CURSOR_DEB_URL is not set' ||
-  fail "missing explanatory error for unset CURSOR_DEB_URL"
+printf '%s\n' "${LOG_MESSAGES[@]}" | grep -q 'CURSOR_DEB_URL is not set; skipping Cursor IDE package install' ||
+  fail "missing explanatory skip for unset CURSOR_DEB_URL"
 
 echo "test_cursor_install.sh: all assertions passed"

@@ -3,18 +3,16 @@
 #
 # Components:
 #   - configure_cursor_autostart(): Create an autostart entry for Cursor IDE.
-#     Adds cursor to the user's autostart applications list via GSettings.
+#     Installs ~/.config/autostart/cursor.desktop for the target user.
 #
-# Sourced after lib/helpers.sh and lib/gsettings_helpers.sh.
-# Depends on: msg, log, need_cmd, append_gsettings_list
+# Sourced after lib/helpers.sh.
+# Depends on: msg, log, need_cmd, run_as_target, TARGET_HOME
 
 # ── Cursor Autostart ─────────────────────────────────────────────────────────
 
 # configure_cursor_autostart — Create an autostart entry for Cursor IDE by
-# appending cursor.desktop to the target user's GSettings autostart list. The
-# write goes through append_gsettings_list (run as the target user), so it
-# reaches the user's dconf even when the installer runs as root and is
-# idempotent across repeated installs.
+# installing a freedesktop autostart desktop file. This avoids relying on a
+# GNOME-specific autostart GSettings schema that is not present on all releases.
 # Arguments: none (reads cursor availability from PATH).
 # Returns: 0 when configured or safely skipped (cursor not installed).
 configure_cursor_autostart() {
@@ -24,13 +22,18 @@ configure_cursor_autostart() {
   fi
 
   msg "Configuring Cursor IDE autostart"
-  log "info" "Appending cursor.desktop to org.gnome.desktop.autostart enabled-apps"
+  log "info" "Installing Cursor autostart desktop entry"
 
-  # Append cursor.desktop to the user's autostart list (de-duplicated/idempotent).
-  if append_gsettings_list org.gnome.desktop.autostart enabled-apps cursor.desktop; then
-    msg "Cursor IDE autostart configured"
-    log "info" "Cursor IDE autostart configured"
-  else
-    log "warn" "Could not update autostart list; Cursor autostart not configured"
-  fi
+  run_as_target install -d -m 0755 "$TARGET_HOME/.config/autostart"
+  run_as_target tee "$TARGET_HOME/.config/autostart/cursor.desktop" >/dev/null <<'DESKTOP'
+[Desktop Entry]
+Type=Application
+Name=Cursor
+Exec=cursor --no-sandbox
+Terminal=false
+X-GNOME-Autostart-enabled=true
+DESKTOP
+  run_as_target chmod 0644 "$TARGET_HOME/.config/autostart/cursor.desktop"
+  msg "Cursor IDE autostart configured"
+  log "info" "Cursor IDE autostart configured"
 }

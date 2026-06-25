@@ -56,22 +56,20 @@ source "$SCRIPT_DIR/installer/components.sh"
 # failures. Arguments: $@ — forwarded but currently unused. Returns: 0 on
 # success; aborts via set -e if a normal-mode step fails.
 main_inner() {
-  if [[ "${ISC_APPLY_HOTKEYS_ONLY:-0}" == "1" ]]; then
-    ensure_session_bus
-    msg "=== LPS CONFIG-ONLY MODE ==="
-    # In config-only mode, apply editor and autostart configuration.
-    configure_continue || true
-    configure_claude_status_bar || true
-    configure_cursor_autostart || true
-    configure_uv_supply_chain || true
-    configure_tmux || true
-    report_sudo_required
-    return 0
+  msg "=== Linux Programming Setup ==="
+  
+  # Feature-specific installation support (--features=feature1,feature2,...)  
+  SELECTED_FEATURES="${FEATURES:-}"
+  
+  if [ -n "$SELECTED_FEATURES" ]; then
+    IFS="," read -ra FEATURE_ARRAY <<< "$SELECTED_FEATURES"
+    msg "Feature filter active: ${FEATURE_ARRAY[*]}"
+    
+    component_main "--select=${FEATURE_ARRAY[0]:-}"  
+  else
+    msg "Installing all configured components"  
+    component_main "$@"
   fi
-
-  # Normal mode: install the selected components (preflight ensures the session
-  # bus; postflight reports any skipped root-only steps).
-  component_main "$@"
 }
 
 # Only run the main installer if the script is executed, not sourced.

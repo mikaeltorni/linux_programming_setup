@@ -13,11 +13,12 @@
 
 # install_cursor — Download and install Cursor IDE from a .deb package.
 # Arguments: none.
-# Requires variable: CURSOR_DEB_URL — full URL to the Cursor .deb file (no
-#   default; the function aborts if it is empty).
+# Requires variable: CURSOR_DEB_URL — optional full URL to the Cursor .deb file.
+#   When unset, the package step is skipped so the remaining programming
+#   components can still configure cleanly on machines that install Cursor
+#   separately.
 # Returns: 0 when Cursor is already present, deferred for sudo, or installed
-#   successfully; non-zero when CURSOR_DEB_URL is unset or the download/install
-#   fails.
+#   successfully; non-zero only when an explicit download/install fails.
 install_cursor() {
   if need_cmd cursor; then
     log "info" "Cursor IDE already present, skipping installation"
@@ -29,11 +30,11 @@ install_cursor() {
     return 0
   fi
 
-  # CURSOR_DEB_URL is required; downloading an empty URL would fail obscurely
-  # after needlessly installing curl/wget, so validate it up front.
+  # CURSOR_DEB_URL is optional because Cursor's current distribution URL changes
+  # over time. An unset URL should not abort the rest of the component run.
   if [ -z "${CURSOR_DEB_URL:-}" ]; then
-    log "error" "CURSOR_DEB_URL is not set; cannot download Cursor IDE. Set it and rerun (see README)."
-    return 1
+    log "warn" "CURSOR_DEB_URL is not set; skipping Cursor IDE package install. Set it and rerun this component to install Cursor."
+    return 0
   fi
 
   msg "Installing Cursor IDE"
