@@ -39,6 +39,7 @@ source "$SCRIPT_DIR/lib/continue_setup.sh"
 source "$SCRIPT_DIR/lib/claude_status_bar_setup.sh"
 source "$SCRIPT_DIR/lib/uv_supply_chain.sh"
 source "$SCRIPT_DIR/lib/tmux_config.sh"
+source "$SCRIPT_DIR/lib/lifecycle.sh"
 source "$SCRIPT_DIR/lib/installer_runtime.sh"
 
 # Component selection runtime and this repository's component manifest. The
@@ -78,7 +79,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     # Listing/help must print only their own output (the master installer parses
     # --list-components) and must not log or reboot.
     case "${1:-}" in
-      --list-components|--help|-h) component_main "$@"; exit $? ;;
+      --list-components|--detect|--help|-h|--uninstall|--uninstall=*) component_main "$@"; exit $? ;;
     esac
     run_and_log_with_reboot "$@"
 fi
