@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # continue_setup.sh — Continue editor configuration and its LM Studio
-# autocomplete profile.
+# autocomplete profile. The qwen-coder model download is a separate component so
+# the master installer can keep model installation selectable.
 #
 # Components:
 #   - install_continue_config(): Deploy ~/.continue/config.yaml.
-#   - ensure_lmstudio_qwen_coder(): Install only the qwen-coder model via
-#     linux_lmstudio_local_agents (the owner of LM Studio serving).
+#   - ensure_lmstudio_qwen_coder(): Separate component that installs only the
+#     qwen-coder model via linux_lmstudio_local_agents (the owner of LM Studio
+#     serving).
 #   - install_lmstudio_autocomplete_profile(): Deploy the LM Studio model profile.
 #   - configure_continue(): Orchestrate the deployments.
 #
@@ -42,8 +44,8 @@ ensure_lmstudio_qwen_coder() {
 
   msg "Installing the qwen-coder autocomplete model via linux_lmstudio_local_agents"
   log "info" "Delegating to LM Studio local-agents installer (qwen-coder model only)"
-  TARGET_USER="$TARGET_USER" LMSTUDIO_INSTALL_MODELS="qwen-coder" \
-    bash "$installer" --default
+  TARGET_USER="$TARGET_USER" LMSTUDIO_ADD_MODELS="qwen-coder" \
+    bash "$installer" --select lm_studio_app,serve,models
 }
 
 # install_lmstudio_autocomplete_profile — Deploy the LM Studio autocomplete
@@ -71,11 +73,13 @@ install_lmstudio_autocomplete_profile() {
 }
 
 # configure_continue — Entry point: install the Continue editor config and the
-# LM Studio autocomplete profile in order.
+# LM Studio autocomplete profile in order. Model downloads are intentionally not
+# performed here; keep the continue_qwen_model component selected or use the standalone
+# linux_lmstudio_local_agents models component when local autocomplete models
+# should be installed.
 # Arguments: none. Returns: 0 on success.
 configure_continue() {
-  log "info" "Configuring Continue (editor config + qwen-coder model + LM Studio autocomplete profile)"
+  log "info" "Configuring Continue (editor config + LM Studio autocomplete profile; model install is optional)"
   install_continue_config
-  ensure_lmstudio_qwen_coder
   install_lmstudio_autocomplete_profile
 }
