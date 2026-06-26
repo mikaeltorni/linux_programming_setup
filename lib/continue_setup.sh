@@ -16,7 +16,6 @@
 
 # install_continue_config — Copy the repository's Continue config.yaml into the
 # target user's ~/.continue directory (creating it with 0644 perms).
-# Arguments: none. Returns: exit status of the install command.
 install_continue_config() {
   local continue_dir="$TARGET_HOME/.continue"
 
@@ -46,6 +45,9 @@ ensure_lmstudio_qwen_coder() {
   log "info" "Delegating to LM Studio local-agents installer (qwen-coder model only)"
   TARGET_USER="$TARGET_USER" LMSTUDIO_ADD_MODELS="qwen-coder" \
     bash "$installer" --select lm_studio_app,serve,models
+
+  # Write receipt so the component framework detects this as installed
+  _isc_mark_installed "continue_qwen_model" || log "warn" "receipt write failed for continue_qwen_model"
 }
 
 # install_lmstudio_autocomplete_profile — Deploy the LM Studio autocomplete
@@ -82,4 +84,26 @@ configure_continue() {
   log "info" "Configuring Continue (editor config + LM Studio autocomplete profile; model install is optional)"
   install_continue_config
   install_lmstudio_autocomplete_profile
+}
+
+# detect_continue_qwen_model — true when the qwen-coder model was installed via 
+# LM Studio's model catalog. Checks for the presence of the lmstudio-local-agents 
+# config directory and a qwen-coder entry in its model-profiles.json.
+detect_continue_qwen_model() {
+  local catalog="$TARGET_HOME/.config/lmstudio-local-agents/configs/lmstudio/model-profiles.json"
+  [[ -f "$catalog" ]] && grep -q "qwen-coder\|qwen_coder" "$catalog" 2>/dev/null
+}
+
+# uninstall_continue_qwen_model — Remove the LM Studio autocomplete profile and 
+# clear the install receipt. Does not delete model files (those are owned by 
+# linux_lmstudio_local_agents). After removal, the component framework will show  
+# this as uninstalled until re-selected.
+uninstall_continue_qwen_model() {
+  log "info" "Removing continue_qwen_model installation markers"
+  local profile_dir="$TARGET_HOME/.config/linux-programming-setup/lmstudio/autocomplete.env"
+  if [ -f "$profile_dir" ]; then
+    rm -f "$profile_dir"
+    log "info" "Removed LM Studio autocomplete env file"
+  fi
+  _isc_clear_receipt "continue_qwen_model" || true
 }
