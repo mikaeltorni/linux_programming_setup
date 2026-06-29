@@ -7,7 +7,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_DIR="$SCRIPT_DIR/configs"
 
 # ── Configuration variables (can be overridden via environment) ───────────────
-CURSOR_DEB_URL="${CURSOR_DEB_URL:-}"
+# Default is the newest Linux x64 .deb link published on https://cursor.com/download
+# (currently v3.9). It redirects to the versioned build; curl -fL follows it.
+# Override CURSOR_DEB_URL to pin a different version/build.
+CURSOR_DEB_URL="${CURSOR_DEB_URL:-https://api2.cursor.sh/updates/download/golden/linux-x64-deb/cursor/3.9}"
 CURSOR_EXTENSIONS_FILE="${CURSOR_EXTENSIONS_FILE:-$CONFIG_DIR/vsc_cursor_extensions}"
 
 # ── Runtime variables ────────────────────────────────────────────────────────
