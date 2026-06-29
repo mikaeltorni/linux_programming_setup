@@ -52,6 +52,10 @@ sudo ISC_NO_REBOOT=1 bash install.sh
 | `CURSOR_DEB_URL` | URL to Cursor .deb package | (required, must be set) |
 | `CURSOR_EXTENSIONS_FILE` | Path to extensions list file | `$CONFIG_DIR/vsc_cursor_extensions` |
 | `LMSTUDIO_USER_SERVICE_NAME` | Agent Command Center LM Studio service to restart after profile changes | `lmstudio-serve.service` |
+| `CONTINUE_AUTOCOMPLETE_MODEL_KEY` | Override the model key written to Continue and its autocomplete profile | `vibethinker-1.5b` |
+| `CONTINUE_AUTOCOMPLETE_MODEL_NAME` | Custom-model display name | model key |
+| `CONTINUE_AUTOCOMPLETE_MODEL_URL` | GGUF URL used by the default-off custom autocomplete component | (prompted) |
+| `CONTINUE_AUTOCOMPLETE_MODEL_SHA256` | Optional custom GGUF checksum | empty |
 
 ## Managing Extensions
 
@@ -103,7 +107,9 @@ linux_programming_setup/
 
 ## Continue AI Configuration
 
-The `configs/continue/config.yaml` file configures the Continue VS Code/Cursor extension to use Qwen 2.5 Coder via LM Studio's local OpenAI-compatible API endpoint (`http://localhost:1234/v1`).
+The `configs/continue/config.yaml` file configures the Continue VS Code/Cursor
+extension to use VibeThinker 1.5B via LM Studio's local OpenAI-compatible API
+endpoint (`http://localhost:1234/v1`).
 
 The installer copies the editor configuration to `~/.continue/config.yaml` and
 the model profile to
@@ -114,6 +120,10 @@ the model after the coding-agent model.
 The vibethinker model download itself is not hidden inside the Continue config
 component. Keep `continue_vibethinker_model` selected for the default autocomplete
 model, or deselect it when no Programming-owned local model should be installed.
+The menu's default-off `continue_custom_model` row prompts for a GGUF URL and
+model key, delegates the download to `linux_lmstudio_local_agents`, and persists
+that key as the Continue override. Autocomplete models are keep-on profiles and
+therefore do not require a per-model switch environment variable.
 
 ## License
 
@@ -153,10 +163,11 @@ or none, and **Enter** installs the selection. Components:
 
 | Component id | Description | Default |
 |---|---|---|
+| `continue_vibethinker_model` | Continue VibeThinker autocomplete model | on |
+| `continue_custom_model` | Custom Continue autocomplete model (prompts for GGUF URL) | off |
 | `cursor` | Cursor IDE | on |
 | `cursor_extensions` | Cursor/VS Code extensions | on |
 | `continue` | Continue AI assistant config | on |
-| `continue_vibethinker_model` | Continue vibethinker LM Studio model | on |
 | `claude_status_bar` | Claude Code status bar wiring | on |
 | `cursor_autostart` | Cursor autostart entry | on |
 | `uv_supply_chain` | UV supply-chain protection | on |

@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import json
 import subprocess
 import tempfile
 from pathlib import Path
@@ -49,9 +50,10 @@ def test_configure_continue_installs_editor_config_and_model_profile():
 def test_installer_runs_continue_configuration():
     """The main installer should deploy Continue and autocomplete settings."""
     source = (ROOT_DIR / "install.sh").read_text(encoding="utf-8")
+    components = (ROOT_DIR / "installer/components.sh").read_text(encoding="utf-8")
 
     assert 'source "$SCRIPT_DIR/lib/continue_setup.sh"' in source
-    assert "configure_continue" in source
+    assert "continue|Continue AI assistant config|on|configure_continue" in components
 
 
 def test_vibethinker_model_install_is_separate_optional_component():
@@ -59,11 +61,201 @@ def test_vibethinker_model_install_is_separate_optional_component():
     components = (ROOT_DIR / "installer" / "components.sh").read_text(encoding="utf-8")
     continue_source = (ROOT_DIR / "lib" / "continue_setup.sh").read_text(encoding="utf-8")
 
-    assert "continue_vibethinker_model|Continue vibethinker LM Studio model|on|" in components
+    assert "continue_vibethinker_model|Continue VibeThinker autocomplete model|on|" in components
     assert 'LMSTUDIO_ADD_MODELS="vibethinker"' in continue_source
     assert "--select lm_studio_app,serve,models" in continue_source
     configure_body = continue_source.split("configure_continue()", 1)[1].split("}", 1)[0]
     assert "ensure_lmstudio_vibethinker" not in configure_body
+
+
+def test_vibethinker_detection_requires_selected_downloaded_weight():
+    """A shipped catalog row alone must not make the model look installed."""
+    with tempfile.TemporaryDirectory() as td:
+        home = Path(td)
+        catalog = (
+            home
+            / ".config/lmstudio-local-agents/configs/lmstudio/model-profiles.json"
+        )
+        catalog.parent.mkdir(parents=True)
+        catalog.write_text(
+            json.dumps({
+                "profiles": [{
+                    "id": "vibethinker",
+                    "default_install": True,
+                    "model_path": "owner/model.gguf",
+                }]
+            }),
+            encoding="utf-8",
+        )
+        script = "\n".join(
+            [
+                f"TARGET_HOME={str(home)!r}",
+                "source lib/continue_setup.sh",
+                "detect_continue_vibethinker_model",
+            ]
+        )
+        missing = subprocess.run(
+            ["bash", "-c", script],
+            cwd=ROOT_DIR,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        assert missing.returncode != 0
+
+        weight = home / ".lmstudio/models/owner/model.gguf"
+        weight.parent.mkdir(parents=True)
+        weight.touch()
+        present = subprocess.run(
+            ["bash", "-c", script],
+            cwd=ROOT_DIR,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        assert present.returncode == 0, present.stderr
+
+
+def test_model_components_are_the_first_models_section():
+    """Autocomplete model choices should be grouped before programming tools."""
+    components = (ROOT_DIR / "installer" / "components.sh").read_text(encoding="utf-8")
+    rows = [
+        line.strip().strip('"')
+        for line in components.splitlines()
+        if line.strip().startswith('"')
+    ]
+
+    assert rows[0].startswith("continue_vibethinker_model|")
+    assert rows[0].endswith("|Models")
+    assert rows[1].startswith("continue_custom_model|")
+    assert rows[1].endswith("|Models")
+    assert all("|Models" not in row for row in rows[2:])
+
+
+def test_continue_model_key_can_be_overridden_without_switch_environment_variable():
+    """A custom autocomplete key should update both deployed Continue assets."""
+    with tempfile.TemporaryDirectory() as td:
+        home = Path(td) / "home"
+        home.mkdir()
+        proc = subprocess.run(
+            [
+                "bash",
+                "-c",
+                "\n".join(
+                    [
+                        "set -euo pipefail",
+                        f"TARGET_HOME={str(home)!r}",
+                        f"CONFIG_DIR={str(ROOT_DIR / 'configs')!r}",
+                        "TARGET_USER=$USER",
+                        'CONTINUE_AUTOCOMPLETE_MODEL_KEY="custom-autocomplete"',
+                        "msg() { :; }",
+                        "log() { :; }",
+                        'run_as_target() { "$@"; }',
+                        "source lib/continue_setup.sh",
+                        "configure_continue",
+                    ]
+                ),
+            ],
+            cwd=ROOT_DIR,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        assert proc.returncode == 0, proc.stderr
+        assert "model: custom-autocomplete" in (
+            home / ".continue/config.yaml"
+        ).read_text(encoding="utf-8")
+        profile = (
+            home / ".config/linux-programming-setup/lmstudio/autocomplete.env"
+        ).read_text(encoding="utf-8")
+        assert 'LMSTUDIO_AUTOCOMPLETE_LOAD_MODEL="custom-autocomplete"' in profile
+
+
+def test_custom_autocomplete_component_delegates_url_without_switch_variable():
+    """The custom row should persist the override and add a switch-free keep-on model."""
+    with tempfile.TemporaryDirectory() as td:
+        home = Path(td) / "home"
+        repo = home / "projects/linux_lmstudio_local_agents"
+        repo.mkdir(parents=True)
+        installer = repo / "install.sh"
+        installer.write_text(
+            "#!/usr/bin/env bash\n"
+            "printf '%s\\n' \"$LMSTUDIO_CUSTOM_MODEL_URL\" \"$LMSTUDIO_CUSTOM_MODEL_SWITCH_ENV_VAR\" \"$LMSTUDIO_CUSTOM_MODEL_ROLE\" > \"$TARGET_HOME/captured-model-env\"\n",
+            encoding="utf-8",
+        )
+        installer.chmod(0o755)
+        proc = subprocess.run(
+            [
+                "bash",
+                "-c",
+                "\n".join(
+                    [
+                        "set -euo pipefail",
+                        f"TARGET_HOME={str(home)!r}",
+                        f"CONFIG_DIR={str(ROOT_DIR / 'configs')!r}",
+                        "TARGET_USER=$USER",
+                        'CONTINUE_AUTOCOMPLETE_MODEL_NAME="Custom Complete"',
+                        'CONTINUE_AUTOCOMPLETE_MODEL_KEY="custom-complete"',
+                        'CONTINUE_AUTOCOMPLETE_MODEL_URL="https://example.com/custom.gguf"',
+                        "msg() { :; }",
+                        "log() { :; }",
+                        'run_as_target() { "$@"; }',
+                        "_isc_mark_installed() { :; }",
+                        "source lib/continue_setup.sh",
+                        "install_custom_continue_autocomplete_model",
+                    ]
+                ),
+            ],
+            cwd=ROOT_DIR,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        assert proc.returncode == 0, proc.stderr
+        assert (home / "captured-model-env").read_text(encoding="utf-8").splitlines() == [
+            "https://example.com/custom.gguf",
+            "",
+            "keep-on",
+        ]
+        assert (
+            home / ".config/linux-programming-setup/continue-autocomplete-model"
+        ).read_text(encoding="utf-8").strip() == "custom-complete"
+
+
+def test_custom_autocomplete_rejects_invalid_model_key_without_terminal():
+    """Unsafe YAML/model keys should fail before delegating any installation."""
+    with tempfile.TemporaryDirectory() as td:
+        proc = subprocess.run(
+            [
+                "bash",
+                "-c",
+                "\n".join(
+                    [
+                        "set -euo pipefail",
+                        f"TARGET_HOME={str(Path(td))!r}",
+                        f"CONFIG_DIR={str(ROOT_DIR / 'configs')!r}",
+                        "TARGET_USER=$USER",
+                        "CONTINUE_AUTOCOMPLETE_MODEL_KEY=$'bad\\nmodel'",
+                        'CONTINUE_AUTOCOMPLETE_MODEL_URL="https://example.com/model.gguf"',
+                        "msg() { :; }",
+                        "log() { :; }",
+                        'run_as_target() { "$@"; }',
+                        "source lib/continue_setup.sh",
+                        "install_custom_continue_autocomplete_model",
+                    ]
+                ),
+            ],
+            cwd=ROOT_DIR,
+            stdin=subprocess.DEVNULL,
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+
+        assert proc.returncode != 0
+        assert "valid model key" in proc.stderr
 
 
 def test_continue_context_matches_lmstudio_profile():
