@@ -28,7 +28,7 @@ See the full cross-repository map in
 
 - **Cursor IDE**: Downloads and installs the Cursor IDE .deb package
 - **VS Code Extensions**: Installs extensions listed in `configs/vsc_cursor_extensions`
-- **Continue AI**: Installs Continue config and the LM Studio autocomplete profile; the qwen-coder model download is a separate default-on component
+- **Continue AI**: Installs Continue config and the LM Studio autocomplete profile; the vibethinker model download is a separate default-on component
 - **Autostart**: Configures Cursor IDE to launch on login
 - **tmux**: Installs a shared `~/.tmux.conf` (mouse support, large scrollback, vi mode-keys)
 
@@ -111,8 +111,8 @@ the model profile to
 Center's shared LM Studio boot service reads that optional profile and loads
 the model after the coding-agent model.
 
-The qwen-coder model download itself is not hidden inside the Continue config
-component. Keep `continue_qwen_model` selected for the default autocomplete
+The vibethinker model download itself is not hidden inside the Continue config
+component. Keep `continue_vibethinker_model` selected for the default autocomplete
 model, or deselect it when no Programming-owned local model should be installed.
 
 ## License
@@ -156,7 +156,7 @@ or none, and **Enter** installs the selection. Components:
 | `cursor` | Cursor IDE | on |
 | `cursor_extensions` | Cursor/VS Code extensions | on |
 | `continue` | Continue AI assistant config | on |
-| `continue_qwen_model` | Continue qwen-coder LM Studio model | on |
+| `continue_vibethinker_model` | Continue vibethinker LM Studio model | on |
 | `claude_status_bar` | Claude Code status bar wiring | on |
 | `cursor_autostart` | Cursor autostart entry | on |
 | `uv_supply_chain` | UV supply-chain protection | on |

@@ -32,7 +32,7 @@ def test_configure_continue_installs_editor_config_and_model_profile():
                         "configure_continue",
                         'test -f "$TARGET_HOME/.continue/config.yaml"',
                         'test -f "$TARGET_HOME/.config/linux-programming-setup/lmstudio/autocomplete.env"',
-                        "grep -F 'model: qwen2.5-coder-1.5b-instruct' \"$TARGET_HOME/.continue/config.yaml\"",
+                        "grep -F 'model: vibethinker-1.5b' \"$TARGET_HOME/.continue/config.yaml\"",
                         "grep -F 'LMSTUDIO_AUTOCOMPLETE_CONTEXT=\"8192\"' "
                         '"$TARGET_HOME/.config/linux-programming-setup/lmstudio/autocomplete.env"',
                     ]
@@ -54,16 +54,16 @@ def test_installer_runs_continue_configuration():
     assert "configure_continue" in source
 
 
-def test_qwen_model_install_is_separate_optional_component():
-    """The LM Studio qwen-coder download should be selectable separately."""
+def test_vibethinker_model_install_is_separate_optional_component():
+    """The LM Studio vibethinker download should be selectable separately."""
     components = (ROOT_DIR / "installer" / "components.sh").read_text(encoding="utf-8")
     continue_source = (ROOT_DIR / "lib" / "continue_setup.sh").read_text(encoding="utf-8")
 
-    assert "continue_qwen_model|Continue qwen-coder LM Studio model|on|" in components
-    assert 'LMSTUDIO_ADD_MODELS="qwen-coder"' in continue_source
+    assert "continue_vibethinker_model|Continue vibethinker LM Studio model|on|" in components
+    assert 'LMSTUDIO_ADD_MODELS="vibethinker"' in continue_source
     assert "--select lm_studio_app,serve,models" in continue_source
     configure_body = continue_source.split("configure_continue()", 1)[1].split("}", 1)[0]
-    assert "ensure_lmstudio_qwen_coder" not in configure_body
+    assert "ensure_lmstudio_vibethinker" not in configure_body
 
 
 def test_continue_context_matches_lmstudio_profile():

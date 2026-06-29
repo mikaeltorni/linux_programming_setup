@@ -3,10 +3,10 @@ version: 1.0.0
 schema: v1
 
 models:
-  - name: Qwen2.5 Coder 1.5B LM Studio
+  - name: VibeThinker 1.5B LM Studio
     provider: openai
     apiBase: http://localhost:1234/v1
-    model: qwen2.5-coder-1.5b-instruct
+    model: vibethinker-1.5b
     roles:
       - autocomplete
     autocompleteOptions:
