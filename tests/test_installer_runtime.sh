@@ -36,7 +36,29 @@ test_no_reboot_mode() (
   [ "$(cat "$log_file")" = "installed:editor" ] ||
     fail "installer output was not written to the log"
   assert_contains "$output" "All done. Log file written to: $log_file"
-  assert_contains "$output" "Skipping reboot due to ISC_NO_REBOOT=1"
+  assert_contains "$output" "Skipping reboot due to ISC_NO_REBOOT/INSTALLER_NO_REBOOT"
+)
+
+test_master_no_reboot_var_skips_reboot() (
+  # The master orchestrator runs children with INSTALLER_NO_REBOOT=1 (not
+  # ISC_NO_REBOOT); honoring it keeps this installer from rebooting mid-run and
+  # killing the repositories sequenced after it.
+  source "$ROOT_DIR/install.sh"
+
+  local temp_dir output
+  temp_dir="$(mktemp -d)"
+  trap 'rm -rf "$temp_dir"' EXIT
+  SCRIPT_DIR="$temp_dir"
+  unset ISC_NO_REBOOT
+  INSTALLER_NO_REBOOT=1
+
+  date() { printf '20260102-030405\n'; }
+  id() { printf '0\n'; }
+  main_inner() { printf 'installed\n'; }
+  reboot() { fail "reboot called despite INSTALLER_NO_REBOOT=1"; }
+
+  output="$(run_and_log_with_reboot)"
+  assert_contains "$output" "Skipping reboot due to ISC_NO_REBOOT/INSTALLER_NO_REBOOT"
 )
 
 test_user_mode_skips_reboot() (
@@ -113,6 +135,7 @@ test_installer_failure_propagates() {
 }
 
 test_no_reboot_mode
+test_master_no_reboot_var_skips_reboot
 test_user_mode_skips_reboot
 test_root_mode_reboots_after_delay
 test_installer_failure_propagates
