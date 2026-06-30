@@ -21,6 +21,12 @@ if grep -qx cursor_autostart <<<"$component_ids"; then
   exit 1
 fi
 
+cursor_row="$(bash "$ROOT_DIR/install.sh" --list-components | awk -F'\t' '$1 == "cursor"')"
+[ "$cursor_row" = $'cursor\tCursor IDE\ton\tDesktop applications' ] || {
+  printf 'FAIL: Cursor should be grouped as a desktop application: %q\n' "$cursor_row" >&2
+  exit 1
+}
+
 if grep -R -n -E '\.config/autostart|X-GNOME-Autostart-enabled' \
     "$ROOT_DIR/lib" --include='*.sh'; then
   printf 'FAIL: programming installer writes app autostart outside [S]\n' >&2

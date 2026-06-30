@@ -165,8 +165,8 @@ or none, and **Enter** installs the selection. Components:
 | `tmux` | tmux configuration | on |
 
 Cursor login startup is controlled by `[S]` on the `cursor` application row in
-the master installer. The programming installer does not create an autostart
-entry independently.
+the master installer, where it is grouped under **Desktop applications**. The
+programming installer does not create an autostart entry independently.
 
 ## Detect, reconfigure, and uninstall
 

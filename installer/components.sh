@@ -17,7 +17,7 @@ ISC_POSTFLIGHT="report_sudo_required"
 ISC_COMPONENTS=(
   "continue_vibethinker_model|Continue VibeThinker autocomplete model|on|ensure_lmstudio_vibethinker|detect_continue_vibethinker_model|uninstall_continue_vibethinker_model|Models"
   "continue_custom_model|Custom Continue autocomplete model (enter GGUF URL)|off|install_custom_continue_autocomplete_model|detect_custom_continue_autocomplete_model|uninstall_custom_continue_autocomplete_model|Models"
-  "cursor|Cursor IDE|on|install_cursor|detect_cursor|uninstall_cursor|Programming tools"
+  "cursor|Cursor IDE|on|install_cursor|detect_cursor|uninstall_cursor|Desktop applications"
   "cursor_extensions|Cursor/VS Code extensions|on|install_cursor_extensions|detect_cursor_extensions|uninstall_cursor_extensions|Programming tools"
   "continue|Continue AI assistant config|on|configure_continue|detect_continue|uninstall_continue|Programming tools"
   "uv_supply_chain|UV supply-chain protection|on|configure_uv_supply_chain|detect_uv_supply_chain|uninstall_uv_supply_chain|Programming tools"
