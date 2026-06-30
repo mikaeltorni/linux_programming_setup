@@ -20,7 +20,6 @@ ISC_COMPONENTS=(
   "cursor|Cursor IDE|on|install_cursor|detect_cursor|uninstall_cursor|Programming tools"
   "cursor_extensions|Cursor/VS Code extensions|on|install_cursor_extensions|detect_cursor_extensions|uninstall_cursor_extensions|Programming tools"
   "continue|Continue AI assistant config|on|configure_continue|detect_continue|uninstall_continue|Programming tools"
-  "claude_status_bar|Claude Code status bar wiring|on|configure_claude_status_bar|detect_claude_status_bar|uninstall_claude_status_bar|Programming tools"
   "cursor_autostart|Cursor autostart entry|on|configure_cursor_autostart|detect_cursor_autostart|uninstall_cursor_autostart|Programming tools"
   "uv_supply_chain|UV supply-chain protection|on|configure_uv_supply_chain|detect_uv_supply_chain|uninstall_uv_supply_chain|Programming tools"
   "tmux|tmux configuration|on|configure_tmux|detect_tmux|uninstall_tmux|Programming tools"

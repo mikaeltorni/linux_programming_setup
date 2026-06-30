@@ -14,13 +14,6 @@ enhance it and never block installation when absent.
 - **Build-time (soft):** the shared installer component framework
   [`linux_installation_scripts_functions`](https://github.com/mikaeltorni/linux_installation_scripts_functions) —
   loaded from a sibling checkout when present, otherwise downloaded on demand.
-- **Delegated/wired asset (optional):** when it sits beside it, this installer
-  wires the
-  [`claude_code_status_bar`](https://github.com/mikaeltorni/claude_code_status_bar)
-  status-line command into `~/.claude/settings.json`. If that checkout is
-  missing, the status bar is skipped — the rest of the programming setup still
-  installs.
-
 See the full cross-repository map in
 [installation_scripts/DEPENDENCIES.md](https://github.com/mikaeltorni/installation_scripts/blob/master/DEPENDENCIES.md).
 
@@ -99,7 +92,6 @@ linux_programming_setup/
     ├── cursor_install.sh         # Cursor IDE installation and extensions
     ├── autostart_cursor.sh       # Cursor autostart configuration
     ├── continue_setup.sh         # Continue config and model profile deployment
-    ├── claude_status_bar_setup.sh # Claude Code status bar delegation
     ├── uv_supply_chain.sh        # Global UV supply-chain protection
     ├── tmux_config.sh            # tmux user configuration deployment
     └── installer_runtime.sh      # Installer logging and reboot policy
@@ -168,7 +160,6 @@ or none, and **Enter** installs the selection. Components:
 | `cursor` | Cursor IDE | on |
 | `cursor_extensions` | Cursor/VS Code extensions | on |
 | `continue` | Continue AI assistant config | on |
-| `claude_status_bar` | Claude Code status bar wiring | on |
 | `cursor_autostart` | Cursor autostart entry | on |
 | `uv_supply_chain` | UV supply-chain protection | on |
 | `tmux` | tmux configuration | on |

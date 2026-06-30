@@ -18,12 +18,6 @@ detect_cursor_extensions() {
 # detect_continue - true when the Continue assistant config is deployed.
 detect_continue() { [ -f "$TARGET_HOME/.continue/config.yaml" ]; }
 
-# detect_claude_status_bar - true when Claude settings wire a status line.
-detect_claude_status_bar() {
-  local f="$TARGET_HOME/.claude/settings.json"
-  [ -f "$f" ] && grep -q '"statusLine"' "$f" 2>/dev/null
-}
-
 # detect_cursor_autostart - true when Cursor's autostart desktop file exists.
 detect_cursor_autostart() {
   [ -f "$TARGET_HOME/.config/autostart/cursor.desktop" ]
@@ -61,23 +55,6 @@ uninstall_cursor_extensions() {
 uninstall_continue() {
   msg "Removing Continue config"
   run_as_target rm -f "$TARGET_HOME/.continue/config.yaml"
-}
-
-# uninstall_claude_status_bar - remove the statusLine wiring from Claude settings.
-uninstall_claude_status_bar() {
-  local f="$TARGET_HOME/.claude/settings.json"
-  [ -f "$f" ] || return 0
-  msg "Removing Claude Code status line from $f"
-  run_as_target python3 - "$f" <<'PY'
-import json, sys
-try:
-    data = json.load(open(sys.argv[1]))
-except Exception:
-    sys.exit(0)
-if data.pop("statusLine", None) is not None:
-    with open(sys.argv[1], "w") as fh:
-        json.dump(data, fh, indent=2); fh.write("\n")
-PY
 }
 
 # uninstall_cursor_autostart - remove Cursor's autostart desktop file.
