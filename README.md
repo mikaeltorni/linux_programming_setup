@@ -90,7 +90,6 @@ linux_programming_setup/
     ├── gsettings_strv.py         # GSettings string-array parser/formatter
     ├── logging_utils.py          # Centralized Python logging helper
     ├── cursor_install.sh         # Cursor IDE installation and extensions
-    ├── autostart_cursor.sh       # Cursor autostart configuration
     ├── continue_setup.sh         # Continue config and model profile deployment
     ├── uv_supply_chain.sh        # Global UV supply-chain protection
     ├── tmux_config.sh            # tmux user configuration deployment
@@ -148,6 +147,8 @@ bash install.sh --default       # install all default-on components, no prompts
 bash install.sh --all           # install every component, no prompts
 bash install.sh --select a,b    # install exactly these component ids
 bash install.sh --list-components  # print: id<TAB>label<TAB>default
+bash install.sh --list-startup-components
+                                # print Cursor [S] startup metadata
 ```
 
 In the interactive menu, **space** toggles a component, `a`/`n` select all
@@ -160,9 +161,12 @@ or none, and **Enter** installs the selection. Components:
 | `cursor` | Cursor IDE | on |
 | `cursor_extensions` | Cursor/VS Code extensions | on |
 | `continue` | Continue AI assistant config | on |
-| `cursor_autostart` | Cursor autostart entry | on |
 | `uv_supply_chain` | UV supply-chain protection | on |
 | `tmux` | tmux configuration | on |
+
+Cursor login startup is controlled by `[S]` on the `cursor` application row in
+the master installer. The programming installer does not create an autostart
+entry independently.
 
 ## Detect, reconfigure, and uninstall
 

@@ -18,18 +18,13 @@ detect_cursor_extensions() {
 # detect_continue - true when the Continue assistant config is deployed.
 detect_continue() { [ -f "$TARGET_HOME/.continue/config.yaml" ]; }
 
-# detect_cursor_autostart - true when Cursor's autostart desktop file exists.
-detect_cursor_autostart() {
-  [ -f "$TARGET_HOME/.config/autostart/cursor.desktop" ]
-}
-
 # detect_uv_supply_chain - true when the machine-wide uv.toml cutoff is deployed.
 detect_uv_supply_chain() { [ -f "$TARGET_HOME/.config/uv/uv.toml" ]; }
 
 # detect_tmux - true when the repo tmux config is deployed.
 detect_tmux() { [ -f "$TARGET_HOME/.tmux.conf" ]; }
 
-# uninstall_cursor - remove the Cursor IDE package (root) and its autostart entry.
+# uninstall_cursor - remove the Cursor IDE package (root).
 uninstall_cursor() {
   if [ "$(id -u)" -ne 0 ]; then
     msg "SKIP (requires sudo): apt remove cursor — run: sudo apt remove cursor"
@@ -55,12 +50,6 @@ uninstall_cursor_extensions() {
 uninstall_continue() {
   msg "Removing Continue config"
   run_as_target rm -f "$TARGET_HOME/.continue/config.yaml"
-}
-
-# uninstall_cursor_autostart - remove Cursor's autostart desktop file.
-uninstall_cursor_autostart() {
-  msg "Removing Cursor autostart desktop entry"
-  run_as_target rm -f "$TARGET_HOME/.config/autostart/cursor.desktop"
 }
 
 # uninstall_uv_supply_chain - remove the machine-wide uv.toml cutoff config.

@@ -1,34 +1,30 @@
 #!/usr/bin/env bash
-# test_cursor_autostart.sh - Cursor autostart desktop-entry lifecycle tests.
+# test_cursor_autostart.sh - Cursor master-menu startup metadata contract.
 
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-TARGET_HOME="$(mktemp -d)"
-trap 'rm -rf "$TARGET_HOME"' EXIT
 
-LOG_MESSAGES=()
-log() { LOG_MESSAGES+=("$*"); }
-msg() { :; }
-need_cmd() { [ "$1" = "cursor" ]; }
-run_as_target() { "$@"; }
-
-source "$ROOT_DIR/lib/autostart_cursor.sh"
-source "$ROOT_DIR/lib/lifecycle.sh"
-
-fail() {
-  printf 'FAIL: %s\n' "$*" >&2
+startup_output="$(bash "$ROOT_DIR/install.sh" --list-startup-components)"
+[ "$startup_output" = $'cursor\tcursor.desktop\ton' ] || {
+  printf 'FAIL: Cursor startup metadata mismatch: %q\n' "$startup_output" >&2
   exit 1
 }
 
-configure_cursor_autostart
-desktop_file="$TARGET_HOME/.config/autostart/cursor.desktop"
-[ -f "$desktop_file" ] || fail "cursor autostart desktop file was not created"
-grep -q '^Exec=cursor --no-sandbox$' "$desktop_file" ||
-  fail "cursor autostart desktop file has the wrong command"
-detect_cursor_autostart || fail "detect_cursor_autostart should see the desktop file"
+component_ids="$(bash "$ROOT_DIR/install.sh" --list-components | cut -f1)"
+grep -qx cursor <<<"$component_ids" || {
+  printf 'FAIL: Cursor application component is missing\n' >&2
+  exit 1
+}
+if grep -qx cursor_autostart <<<"$component_ids"; then
+  printf 'FAIL: legacy cursor_autostart component bypasses [S]\n' >&2
+  exit 1
+fi
 
-uninstall_cursor_autostart
-[ ! -e "$desktop_file" ] || fail "cursor autostart desktop file was not removed"
+if grep -R -n -E '\.config/autostart|X-GNOME-Autostart-enabled' \
+    "$ROOT_DIR/lib" --include='*.sh'; then
+  printf 'FAIL: programming installer writes app autostart outside [S]\n' >&2
+  exit 1
+fi
 
-printf 'test_cursor_autostart.sh: all assertions passed\n'
+printf 'test_cursor_autostart.sh: [S] metadata assertions passed\n'

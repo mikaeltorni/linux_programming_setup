@@ -37,7 +37,6 @@ isc_load_helpers
 source "$SCRIPT_DIR/lib/apt_helpers.sh"   # repo-specific apt_install (overrides shared)
 source "$SCRIPT_DIR/lib/gsettings_helpers.sh"
 source "$SCRIPT_DIR/lib/cursor_install.sh"
-source "$SCRIPT_DIR/lib/autostart_cursor.sh"
 source "$SCRIPT_DIR/lib/continue_setup.sh"
 source "$SCRIPT_DIR/lib/uv_supply_chain.sh"
 source "$SCRIPT_DIR/lib/tmux_config.sh"
@@ -54,7 +53,7 @@ source "$SCRIPT_DIR/installer/components.sh"
 
 # main_inner — Run the installation steps. In normal mode it requires root and
 # runs every step in order; in config-only mode (ISC_APPLY_HOTKEYS_ONLY=1) it
-# applies only the editor/autostart/uv configuration, tolerating per-step
+# applies only editor/uv configuration, tolerating per-step
 # failures. Arguments: $@ — forwarded but currently unused. Returns: 0 on
 # success; aborts via set -e if a normal-mode step fails.
 main_inner() {
@@ -79,6 +78,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     # Listing/help must print only their own output (the master installer parses
     # --list-components) and must not log or reboot.
     case "${1:-}" in
+      --list-startup-components) lps_list_startup_components; exit $? ;;
       --list-components|--detect|--help|-h|--uninstall|--uninstall=*) component_main "$@"; exit $? ;;
     esac
     run_and_log_with_reboot "$@"
