@@ -25,8 +25,17 @@ run_and_log_with_reboot() {
   mkdir -p "$log_dir"
   log_file="$log_dir/linux_programming_setup-$ts.log"
 
-  main_inner "$@" 2>&1 | tee "$log_file"
-  msg "All done. Log file written to: $log_file"
+  if [[ $# -eq 0 && -t 0 && -t 1 ]]; then
+    # A tee pipeline makes stdout cease to be a TTY, causing component_main to
+    # skip its standalone submenu and install defaults immediately. Keep the
+    # interactive path attached to the terminal; lib/helpers.sh still records
+    # structured repository logs for actions taken after selection.
+    main_inner
+    msg "All done. Interactive output remained attached to the terminal."
+  else
+    main_inner "$@" 2>&1 | tee "$log_file"
+    msg "All done. Log file written to: $log_file"
+  fi
 
   if [[ "${ISC_NO_REBOOT:-0}" == "1" || "${INSTALLER_NO_REBOOT:-0}" == "1" ]]; then
     msg "Skipping reboot due to ISC_NO_REBOOT/INSTALLER_NO_REBOOT"

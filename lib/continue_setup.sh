@@ -14,6 +14,20 @@
 # Sourced after lib/helpers.sh. Depends on: msg, log, run_as_target.
 # Requires variables: TARGET_HOME, CONFIG_DIR, TARGET_USER.
 
+LMSTUDIO_LOCAL_AGENTS_DIR="${LMSTUDIO_LOCAL_AGENTS_DIR:-${TARGET_HOME:-${HOME:-/tmp}}/projects/linux_lmstudio_local_agents}"
+LMSTUDIO_LOCAL_AGENTS_REPO_URL="${LMSTUDIO_LOCAL_AGENTS_REPO_URL:-https://github.com/mikaeltorni/linux_lmstudio_local_agents.git}"
+
+# ensure_continue_lmstudio_owner — resolve the public model-owner dependency for
+# a standalone checkout. Existing checkouts are left untouched; a missing one
+# is cloned non-interactively because selecting/configuring a model explicitly
+# authorizes fetching that public dependency.
+ensure_continue_lmstudio_owner() {
+  [ -f "$LMSTUDIO_LOCAL_AGENTS_DIR/install.sh" ] && return 0
+  INSTALLER_AUTH=1 ensure_linked_repository \
+    "LM Studio local agents" "$LMSTUDIO_LOCAL_AGENTS_DIR" \
+    "$LMSTUDIO_LOCAL_AGENTS_REPO_URL"
+}
+
 # resolve_continue_config_file — Resolve the selected Continue YAML file inside
 # CONFIG_DIR. CONTINUE_CONFIG_NAME is the noninteractive override; interactive
 # runs expose the default as editable text. Prints the validated source path.
@@ -33,6 +47,38 @@ resolve_continue_config_file() {
 # continue_model_override_file — path containing the persisted Continue model key.
 continue_model_override_file() {
   printf '%s\n' "$TARGET_HOME/.config/linux-programming-setup/continue-autocomplete-model"
+}
+
+# continue_model_source_file — persisted one-line source collected by the
+# nested component configurator before the install phase.
+continue_model_source_file() {
+  printf '%s\n' "$TARGET_HOME/.config/linux-programming-setup/continue-autocomplete-source"
+}
+
+# configure_custom_continue_model_source — collect and validate the single
+# Hugging Face URL / owner-model-quant field shown from RIGHT in either menu.
+# This only saves configuration; the component install performs the download.
+configure_custom_continue_model_source() {
+  local source="${CONTINUE_AUTOCOMPLETE_MODEL_SOURCE:-}"
+  ensure_continue_lmstudio_owner || return 1
+  local owner="$LMSTUDIO_LOCAL_AGENTS_DIR"
+  if [ -z "$source" ] && [ -t 0 ] && [ -t 1 ]; then
+    read -r -p "Hugging Face URL or owner/model@quant: " source </dev/tty
+  fi
+  [ -n "$source" ] || return 1
+  if [ ! -f "$owner/scripts/lmstudio_models.py" ]; then
+    log "error" "LM Studio model owner is unavailable at $owner"
+    printf '%s\n' "Clone linux_lmstudio_local_agents beside this repository before configuring a custom model." >&2
+    return 2
+  fi
+  python3 "$owner/scripts/lmstudio_models.py" profile-from-source \
+    --catalog "$owner/configs/lmstudio/model-profiles.json" --source "$source" >/dev/null
+  local source_file
+  source_file="$(continue_model_source_file)"
+  run_as_target mkdir -p "$(dirname "$source_file")"
+  printf '%s\n' "$source" | run_as_target tee "$source_file" >/dev/null
+  run_as_target chmod 0644 "$source_file"
+  log "info" "Saved custom Continue model source for the install phase"
 }
 
 # is_valid_continue_model_key — accept model identifiers that are safe in YAML.
@@ -95,10 +141,10 @@ PY
 # is absent so a standalone programming-setup run never fails.
 # Arguments: none. Requires variable: TARGET_USER, TARGET_HOME.
 ensure_lmstudio_vibethinker() {
-  local repo_dir="$TARGET_HOME/projects/linux_lmstudio_local_agents"
+  local repo_dir="$LMSTUDIO_LOCAL_AGENTS_DIR"
   local installer="$repo_dir/install.sh"
 
-  if [[ ! -f "$installer" ]]; then
+  if ! ensure_continue_lmstudio_owner || [[ ! -f "$installer" ]]; then
     log "warn" "linux_lmstudio_local_agents not found at $repo_dir; skipping vibethinker model install."
     return 0
   fi
@@ -119,18 +165,28 @@ install_custom_continue_autocomplete_model() {
   local name="${CONTINUE_AUTOCOMPLETE_MODEL_NAME:-}"
   local model_key="${CONTINUE_AUTOCOMPLETE_MODEL_KEY:-}"
   local url="${CONTINUE_AUTOCOMPLETE_MODEL_URL:-}"
+  local source="${CONTINUE_AUTOCOMPLETE_MODEL_SOURCE:-}"
   local sha256="${CONTINUE_AUTOCOMPLETE_MODEL_SHA256:-}"
-  local installer="$TARGET_HOME/projects/linux_lmstudio_local_agents/install.sh"
-  if { [ -z "$model_key" ] || [ -z "$url" ]; } \
-    && { : </dev/tty; } 2>/dev/null; then
-    [ -n "$name" ] || read -r -p "Autocomplete model name: " name </dev/tty
-    [ -n "$model_key" ] || read -r -p "Autocomplete lms model key: " model_key </dev/tty
-    [ -n "$url" ] || read -r -p "Autocomplete GGUF download URL: " url </dev/tty
-    [ -n "$sha256" ] || read -r -p "sha256 (optional): " sha256 </dev/tty
+  local installer="$LMSTUDIO_LOCAL_AGENTS_DIR/install.sh"
+  if [ -z "$source" ] && [ -s "$(continue_model_source_file)" ]; then
+    source="$(head -n 1 "$(continue_model_source_file)")"
   fi
-  if [ -z "$model_key" ] || [ -z "$url" ]; then
-    log "error" "Custom Continue model requires CONTINUE_AUTOCOMPLETE_MODEL_KEY and CONTINUE_AUTOCOMPLETE_MODEL_URL"
-    printf '%s\n' "Custom Continue model requires CONTINUE_AUTOCOMPLETE_MODEL_KEY and CONTINUE_AUTOCOMPLETE_MODEL_URL." >&2
+  if [ -z "$source" ] && { [ -z "$model_key" ] || [ -z "$url" ]; } \
+    && { : </dev/tty; } 2>/dev/null; then
+    read -r -p "Hugging Face URL or owner/model@quant: " source </dev/tty
+  fi
+  if [ -n "$source" ]; then
+    ensure_continue_lmstudio_owner || return 1
+    local profile_json
+    profile_json="$(python3 "$LMSTUDIO_LOCAL_AGENTS_DIR/scripts/lmstudio_models.py" \
+      profile-from-source --catalog "$LMSTUDIO_LOCAL_AGENTS_DIR/configs/lmstudio/model-profiles.json" \
+      --source "$source")" || return 2
+    IFS=$'\t' read -r name model_key < <(printf '%s' "$profile_json" | python3 -c \
+      'import json,sys; p=json.load(sys.stdin); print(p["description"]+"\t"+p["model_key"])')
+  fi
+  if [ -z "$source" ] && { [ -z "$model_key" ] || [ -z "$url" ]; }; then
+    log "error" "Custom Continue model requires a Hugging Face source"
+    printf '%s\n' "Enter a Hugging Face URL, or owner/model@quant when using catalog search." >&2
     return 2
   fi
   if ! is_valid_continue_model_key "$model_key"; then
@@ -149,6 +205,7 @@ install_custom_continue_autocomplete_model() {
     LMSTUDIO_CUSTOM_MODEL_NAME="$name" \
     LMSTUDIO_CUSTOM_MODEL_KEY="$model_key" \
     LMSTUDIO_CUSTOM_MODEL_URL="$url" \
+    LMSTUDIO_CUSTOM_MODEL_SOURCE="$source" \
     LMSTUDIO_CUSTOM_MODEL_SHA256="$sha256" \
     LMSTUDIO_CUSTOM_MODEL_SWITCH_ENV_VAR="" \
     LMSTUDIO_CUSTOM_MODEL_ROLE="keep-on" \

@@ -134,10 +134,29 @@ test_installer_failure_propagates() {
   fi
 }
 
+test_interactive_mode_preserves_tty() {
+  command -v script >/dev/null 2>&1 || fail "script(1) is required for PTY regression test"
+  local output temp_dir
+  temp_dir="$(mktemp -d)"
+  trap 'rm -rf "$temp_dir"' RETURN
+  output="$(script -qec "bash -c '
+    source \"$ROOT_DIR/install.sh\"
+    SCRIPT_DIR=\"$temp_dir\"
+    INSTALLER_NO_REBOOT=1
+    main_inner() { if [[ -t 0 && -t 1 ]]; then printf tty-preserved; else printf tty-lost; return 9; fi; }
+    run_and_log_with_reboot
+  '" /dev/null)"
+  assert_contains "$output" "tty-preserved"
+  if grep -Fq "tty-lost" <<<"$output"; then
+    fail "interactive installer lost its terminal through the logging pipeline"
+  fi
+}
+
 test_no_reboot_mode
 test_master_no_reboot_var_skips_reboot
 test_user_mode_skips_reboot
 test_root_mode_reboots_after_delay
 test_installer_failure_propagates
+test_interactive_mode_preserves_tty
 
 echo "test_installer_runtime.sh: all assertions passed"

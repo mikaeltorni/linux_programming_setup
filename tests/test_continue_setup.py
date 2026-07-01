@@ -174,7 +174,7 @@ def test_model_components_are_the_first_models_section():
     assert rows[0].startswith("continue_vibethinker_model|")
     assert rows[0].endswith("|Models")
     assert rows[1].startswith("continue_custom_model|")
-    assert rows[1].endswith("|Models")
+    assert rows[1].split("|")[6] == "Models"
     assert all("|Models" not in row for row in rows[2:])
 
 
@@ -311,3 +311,19 @@ def test_continue_context_matches_lmstudio_profile():
 
     assert "contextLength: 8192" in config
     assert 'LMSTUDIO_AUTOCOMPLETE_CONTEXT="8192"' in profile
+
+
+def test_custom_autocomplete_accepts_the_shared_single_source_field():
+    """The custom row should use the LM owner parser and one source prompt."""
+    source = (ROOT_DIR / "lib" / "continue_setup.sh").read_text(encoding="utf-8")
+    assert "CONTINUE_AUTOCOMPLETE_MODEL_SOURCE" in source
+    assert "profile-from-source" in source
+    assert "LMSTUDIO_CUSTOM_MODEL_SOURCE" in source
+    assert "Hugging Face URL or owner/model@quant" in source
+    assert "INSTALLER_AUTH=1 ensure_linked_repository" in source
+    listing = subprocess.run(
+        ["bash", str(ROOT_DIR / "install.sh"), "--list-configurable-components"],
+        capture_output=True, text=True, check=False,
+    )
+    assert listing.returncode == 0, listing.stderr
+    assert listing.stdout.splitlines() == ["continue_custom_model"]

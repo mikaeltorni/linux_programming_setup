@@ -47,6 +47,7 @@ sudo ISC_NO_REBOOT=1 bash install.sh
 | `LMSTUDIO_USER_SERVICE_NAME` | Agent Command Center LM Studio service to restart after profile changes | `lmstudio-serve.service` |
 | `CONTINUE_AUTOCOMPLETE_MODEL_KEY` | Override the model key written to Continue and its autocomplete profile | `vibethinker-1.5b` |
 | `CONTINUE_AUTOCOMPLETE_MODEL_NAME` | Custom-model display name | model key |
+| `CONTINUE_AUTOCOMPLETE_MODEL_SOURCE` | Hugging Face repository URL or exact `owner/model@quant` source | (prompted) |
 | `CONTINUE_AUTOCOMPLETE_MODEL_URL` | GGUF URL used by the default-off custom autocomplete component | (prompted) |
 | `CONTINUE_AUTOCOMPLETE_MODEL_SHA256` | Optional custom GGUF checksum | empty |
 
@@ -109,9 +110,14 @@ the model after the coding-agent model.
 The vibethinker model download itself is not hidden inside the Continue config
 component. Keep `continue_vibethinker_model` selected for the default autocomplete
 model, or deselect it when no Programming-owned local model should be installed.
-The menu's default-off `continue_custom_model` row prompts for a GGUF URL and
-model key, delegates the download to `linux_lmstudio_local_agents`, and persists
-that key as the Continue override. Autocomplete models are keep-on profiles and
+In either the standalone or master submenu, highlight the default-off
+`continue_custom_model` row and press `→` to show its one source prompt for a
+Hugging Face repository URL or `owner/model@quant`, delegates parsing and the
+download to `linux_lmstudio_local_agents`, and persists the resulting model key
+as the Continue override. The older explicit key/URL variables remain available
+for automation. A standalone checkout clones the public
+`linux_lmstudio_local_agents` dependency on first model use when it is absent.
+Autocomplete models are keep-on profiles and
 therefore do not require a per-model switch environment variable.
 
 ## License
@@ -157,7 +163,7 @@ or none, and **Enter** installs the selection. Components:
 | Component id | Description | Default |
 |---|---|---|
 | `continue_vibethinker_model` | Continue VibeThinker autocomplete model | on |
-| `continue_custom_model` | Custom Continue autocomplete model (prompts for GGUF URL) | off |
+| `continue_custom_model` | Custom Continue autocomplete model (URL or `owner/model@quant`) | off |
 | `cursor` | Cursor IDE | on |
 | `cursor_extensions` | Cursor extensions (default: `vsc_cursor_extensions`; requires Cursor) | on |
 | `continue` | Continue AI assistant config (default: `continue/config.yaml`; requires Cursor) | on |
