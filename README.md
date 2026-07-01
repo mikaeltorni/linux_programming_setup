@@ -20,10 +20,9 @@ See the full cross-repository map in
 ## Features
 
 - **Cursor IDE**: Downloads and installs the Cursor IDE .deb package
-- **VS Code Extensions**: Installs extensions listed in `configs/vsc_cursor_extensions`
-- **Continue AI**: Installs Continue config and the LM Studio autocomplete profile; the vibethinker model download is a separate default-on component
-- **Autostart**: Configures Cursor IDE to launch on login
-- **tmux**: Installs a shared `~/.tmux.conf` (mouse support, large scrollback, vi mode-keys)
+- **Cursor Extensions**: Installs extensions into Cursor from an optionally selected list under `configs/`
+- **Continue AI**: Installs an optionally selected Continue config and the LM Studio autocomplete profile; the vibethinker model download is a separate default-on component
+- **Desktop integration**: Cursor can be marked as a dock favorite, startup app, and workspace-assigned app in the master menu
 
 ## Installation
 
@@ -43,7 +42,8 @@ sudo ISC_NO_REBOOT=1 bash install.sh
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `CURSOR_DEB_URL` | URL to Cursor .deb package | (required, must be set) |
-| `CURSOR_EXTENSIONS_FILE` | Path to extensions list file | `$CONFIG_DIR/vsc_cursor_extensions` |
+| `CURSOR_EXTENSIONS_CONFIG` | Extension-list filename relative to `configs/` | `vsc_cursor_extensions` |
+| `CONTINUE_CONFIG_NAME` | Continue YAML filename relative to `configs/` | `continue/config.yaml` |
 | `LMSTUDIO_USER_SERVICE_NAME` | Agent Command Center LM Studio service to restart after profile changes | `lmstudio-serve.service` |
 | `CONTINUE_AUTOCOMPLETE_MODEL_KEY` | Override the model key written to Continue and its autocomplete profile | `vibethinker-1.5b` |
 | `CONTINUE_AUTOCOMPLETE_MODEL_NAME` | Custom-model display name | model key |
@@ -64,8 +64,11 @@ xargs -r -L 1 cursor --install-extension < configs/vsc_cursor_extensions
 
 ### Custom extensions file:
 ```bash
-sudo CURSOR_EXTENSIONS_FILE=/path/to/extensions.txt bash install.sh
+CURSOR_EXTENSIONS_CONFIG=my_extensions bash install.sh --select cursor_extensions
 ```
+
+Interactive component runs show the default filename as editable text. Custom
+files stay under `configs/`; absolute paths and `..` traversal are rejected.
 
 ## Project Structure
 
@@ -75,14 +78,11 @@ linux_programming_setup/
 ├── README.md                     # This file
 ├── LICENSE.md                    # MIT License
 ├── configs/
-│   ├── .tmux.conf                # tmux user configuration
 │   ├── vsc_cursor_extensions     # VS Code/Cursor extension IDs (one per line)
 │   └── continue/
 │       └── config.yaml           # Continue AI assistant configuration
 │   ├── lmstudio/
 │   │   └── autocomplete.env      # Continue model preload profile
-│   └── uv/
-│       └── uv.toml               # Global UV supply-chain config
 └── lib/
     ├── apt_helpers.sh            # Root-optional APT package installation
     ├── helpers.sh                # Core utility functions and logging
@@ -91,8 +91,6 @@ linux_programming_setup/
     ├── logging_utils.py          # Centralized Python logging helper
     ├── cursor_install.sh         # Cursor IDE installation and extensions
     ├── continue_setup.sh         # Continue config and model profile deployment
-    ├── uv_supply_chain.sh        # Global UV supply-chain protection
-    ├── tmux_config.sh            # tmux user configuration deployment
     └── installer_runtime.sh      # Installer logging and reboot policy
 ```
 
@@ -149,6 +147,8 @@ bash install.sh --select a,b    # install exactly these component ids
 bash install.sh --list-components  # print: id<TAB>label<TAB>default
 bash install.sh --list-startup-components
                                 # print Cursor [S] startup metadata
+bash install.sh --list-favorite-components
+                                # print Cursor [F] favorite metadata
 ```
 
 In the interactive menu, **space** toggles a component, `a`/`n` select all
@@ -159,14 +159,12 @@ or none, and **Enter** installs the selection. Components:
 | `continue_vibethinker_model` | Continue VibeThinker autocomplete model | on |
 | `continue_custom_model` | Custom Continue autocomplete model (prompts for GGUF URL) | off |
 | `cursor` | Cursor IDE | on |
-| `cursor_extensions` | Cursor/VS Code extensions | on |
-| `continue` | Continue AI assistant config | on |
-| `uv_supply_chain` | UV supply-chain protection | on |
-| `tmux` | tmux configuration | on |
+| `cursor_extensions` | Cursor extensions (default: `vsc_cursor_extensions`; requires Cursor) | on |
+| `continue` | Continue AI assistant config (default: `continue/config.yaml`; requires Cursor) | on |
 
-Cursor login startup is controlled by `[S]` on the `cursor` application row in
-the master installer, where it is grouped under **Desktop applications**. The
-programming installer does not create an autostart entry independently.
+Cursor favorite, login startup, and workspace assignment are controlled by the
+`[F]`, `[S]`, and `[1-9]` actions on its application row in the master menu. The
+programming installer does not write those desktop settings independently.
 
 ## Detect, reconfigure, and uninstall
 
