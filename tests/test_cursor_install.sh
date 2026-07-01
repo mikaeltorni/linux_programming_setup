@@ -49,4 +49,21 @@ install_cursor || fail "install_cursor failed with an empty CURSOR_DEB_URL"
 printf '%s\n' "${LOG_MESSAGES[@]}" | grep -q 'CURSOR_DEB_URL is not set; skipping Cursor IDE package install' ||
   fail "missing explanatory skip for unset CURSOR_DEB_URL"
 
+# Extension configuration names resolve inside configs/, default when input is
+# unavailable, and reject traversal outside the repository configuration tree.
+CONFIG_DIR="$(mktemp -d)"
+trap 'rm -rf "$CONFIG_DIR"' EXIT
+printf 'example.extension\n' >"$CONFIG_DIR/vsc_cursor_extensions"
+printf 'custom.extension\n' >"$CONFIG_DIR/custom_extensions"
+unset CURSOR_EXTENSIONS_CONFIG CURSOR_EXTENSIONS_FILE
+[ "$(resolve_cursor_extensions_file </dev/null)" = "$CONFIG_DIR/vsc_cursor_extensions" ] ||
+  fail "extension config did not default to vsc_cursor_extensions"
+CURSOR_EXTENSIONS_CONFIG=custom_extensions
+[ "$(resolve_cursor_extensions_file </dev/null)" = "$CONFIG_DIR/custom_extensions" ] ||
+  fail "extension config override was not resolved inside configs"
+CURSOR_EXTENSIONS_CONFIG=../outside
+if resolve_cursor_extensions_file </dev/null >/dev/null 2>&1; then
+  fail "extension config traversal was accepted"
+fi
+
 echo "test_cursor_install.sh: all assertions passed"

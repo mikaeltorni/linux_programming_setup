@@ -7,7 +7,7 @@
 #
 # Sourced after lib/helpers.sh and lib/apt_helpers.sh.
 # Depends on: msg, need_cmd, apt_install, log, run_as_target.
-# Requires variables: CURSOR_DEB_URL, CURSOR_EXTENSIONS_FILE, TARGET_HOME, TARGET_USER
+# Requires variables: CURSOR_DEB_URL, CONFIG_DIR, TARGET_HOME, TARGET_USER.
 
 # ── Cursor IDE ───────────────────────────────────────────────────────────────
 
@@ -62,29 +62,50 @@ install_cursor() {
 
 # ── Cursor Extensions ────────────────────────────────────────────────────────
 
+# resolve_cursor_extensions_file — Resolve the selected extension-list name
+# inside CONFIG_DIR. CURSOR_EXTENSIONS_CONFIG provides a noninteractive
+# override; an interactive run offers the repository default as editable text.
+# Absolute paths and parent traversal are rejected so installer selection stays
+# limited to committed configuration assets. Prints the resolved path.
+resolve_cursor_extensions_file() {
+  local name="${CURSOR_EXTENSIONS_CONFIG:-vsc_cursor_extensions}"
+  if [[ -z "${CURSOR_EXTENSIONS_CONFIG+x}" ]] && { : </dev/tty; } 2>/dev/null; then
+    read -r -e -i "$name" -p "Cursor extension config in configs/: " name </dev/tty
+  fi
+  if [[ -z "$name" || "$name" = /* || "$name" = .. || "$name" = ../* || "$name" = */../* || "$name" = */.. ]]; then
+    log "error" "Invalid Cursor extension config name: $name"
+    printf 'Cursor extension config must be a relative file inside configs/.\n' >&2
+    return 2
+  fi
+  printf '%s/%s\n' "$CONFIG_DIR" "$name"
+}
+
 # install_cursor_extensions — Install every extension listed in
-#   CURSOR_EXTENSIONS_FILE (one extension ID per line, e.g. "ms-python.python";
+#   the selected config file (one extension ID per line, e.g. "ms-python.python";
 #   blank lines and lines starting with '#' are ignored). Each extension is
 #   installed as the target user via run_as_target.
 # Arguments: none.
-# Requires variable: CURSOR_EXTENSIONS_FILE — path to the extension list file.
+# Requires variable: CONFIG_DIR — directory containing extension-list files.
 # Returns: 0 when the list is installed or safely skipped (file missing); a
 #   per-extension failure degrades to a warning and does not abort the loop.
 install_cursor_extensions() {
-  if [ ! -f "$CURSOR_EXTENSIONS_FILE" ]; then
-    log "warn" "Cursor extensions file not found at $CURSOR_EXTENSIONS_FILE, skipping"
-    return 0
+  local extensions_file
+  extensions_file="$(resolve_cursor_extensions_file)" || return
+  if [ ! -f "$extensions_file" ]; then
+    log "error" "Cursor extensions file not found at $extensions_file"
+    printf 'Cursor extension config not found: %s\n' "$extensions_file" >&2
+    return 2
   fi
 
-  msg "Installing Cursor extensions from $CURSOR_EXTENSIONS_FILE"
-  log "info" "Installing Cursor extensions from $CURSOR_EXTENSIONS_FILE"
+  msg "Installing Cursor extensions from $extensions_file"
+  log "info" "Installing Cursor extensions from $extensions_file"
   while IFS= read -r ext_id; do
     # Skip empty lines and comments
     [[ -z "$ext_id" || "$ext_id" =~ ^# ]] && continue
     log "info" "Installing Cursor extension: $ext_id"
     run_as_target cursor --install-extension "$ext_id" 2>/dev/null || \
       log "warn" "Failed to install Cursor extension: $ext_id"
-  done < "$CURSOR_EXTENSIONS_FILE"
+  done < "$extensions_file"
   msg "Cursor extensions installation complete"
   log "info" "Cursor extensions installation complete"
 }
