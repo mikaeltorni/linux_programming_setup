@@ -18,9 +18,6 @@ detect_cursor_extensions() {
 # detect_continue - true when the Continue assistant config is deployed.
 detect_continue() { [ -f "$TARGET_HOME/.continue/config.yaml" ]; }
 
-# detect_uv_supply_chain - true when the machine-wide uv.toml cutoff is deployed.
-detect_uv_supply_chain() { [ -f "$TARGET_HOME/.config/uv/uv.toml" ]; }
-
 # detect_tmux - true when the repo tmux config is deployed.
 detect_tmux() { [ -f "$TARGET_HOME/.tmux.conf" ]; }
 
@@ -52,12 +49,6 @@ uninstall_cursor_extensions() {
 uninstall_continue() {
   msg "Removing Continue config"
   run_as_target rm -f "$TARGET_HOME/.continue/config.yaml"
-}
-
-# uninstall_uv_supply_chain - remove the machine-wide uv.toml cutoff config.
-uninstall_uv_supply_chain() {
-  msg "Removing UV supply-chain config"
-  run_as_target rm -f "$TARGET_HOME/.config/uv/uv.toml"
 }
 
 # uninstall_tmux - remove the deployed tmux config.
