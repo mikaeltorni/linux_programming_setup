@@ -24,6 +24,12 @@ ISC_COMPONENTS=(
   "tmux|tmux configuration|on|configure_tmux|detect_tmux|uninstall_tmux|Programming tools"
 )
 
+# lps_list_favorite_components - Publish Cursor as a dock-favorite candidate.
+# Output: component id<TAB>comma-separated desktop ids.
+lps_list_favorite_components() {
+  printf 'cursor\tcursor.desktop\n'
+}
+
 # lps_list_startup_components - Print GUI components whose login startup is
 # controlled by the master installer's [S] action.
 # Output: component id<TAB>desktop candidates<TAB>default selection.

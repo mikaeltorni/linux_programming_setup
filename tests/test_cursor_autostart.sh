@@ -11,6 +11,12 @@ startup_output="$(bash "$ROOT_DIR/install.sh" --list-startup-components)"
   exit 1
 }
 
+favorite_output="$(bash "$ROOT_DIR/install.sh" --list-favorite-components)"
+[ "$favorite_output" = $'cursor\tcursor.desktop' ] || {
+  printf 'FAIL: Cursor favorite metadata mismatch: %q\n' "$favorite_output" >&2
+  exit 1
+}
+
 component_ids="$(bash "$ROOT_DIR/install.sh" --list-components | cut -f1)"
 grep -qx cursor <<<"$component_ids" || {
   printf 'FAIL: Cursor application component is missing\n' >&2

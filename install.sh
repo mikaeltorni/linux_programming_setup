@@ -78,6 +78,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     # Listing/help must print only their own output (the master installer parses
     # --list-components) and must not log or reboot.
     case "${1:-}" in
+      --list-favorite-components) lps_list_favorite_components; exit $? ;;
       --list-startup-components) lps_list_startup_components; exit $? ;;
       --list-components|--detect|--help|-h|--uninstall|--uninstall=*) component_main "$@"; exit $? ;;
     esac
