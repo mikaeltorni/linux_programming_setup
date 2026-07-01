@@ -20,7 +20,6 @@ ISC_COMPONENTS=(
   "cursor|Cursor IDE|on|install_cursor|detect_cursor|uninstall_cursor|Desktop applications"
   "cursor_extensions|Cursor extensions (default: vsc_cursor_extensions)|on|install_cursor_extensions|detect_cursor_extensions|uninstall_cursor_extensions|Programming tools|cursor"
   "continue|Continue AI assistant config (default: continue/config.yaml)|on|configure_continue|detect_continue|uninstall_continue|Programming tools|cursor"
-  "tmux|tmux configuration|on|configure_tmux|detect_tmux|uninstall_tmux|Programming tools"
 )
 
 # lps_list_favorite_components - Publish Cursor as a dock-favorite candidate.

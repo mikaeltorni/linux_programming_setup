@@ -37,7 +37,6 @@ source "$SCRIPT_DIR/lib/apt_helpers.sh"   # repo-specific apt_install (overrides
 source "$SCRIPT_DIR/lib/gsettings_helpers.sh"
 source "$SCRIPT_DIR/lib/cursor_install.sh"
 source "$SCRIPT_DIR/lib/continue_setup.sh"
-source "$SCRIPT_DIR/lib/tmux_config.sh"
 source "$SCRIPT_DIR/lib/lifecycle.sh"
 source "$SCRIPT_DIR/lib/installer_runtime.sh"
 

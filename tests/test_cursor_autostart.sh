@@ -33,6 +33,20 @@ cursor_row="$(bash "$ROOT_DIR/install.sh" --list-components | awk -F'\t' '$1 == 
   exit 1
 }
 
+component_rows="$(bash "$ROOT_DIR/install.sh" --list-components)"
+grep -Fqx $'cursor_extensions\tCursor extensions (default: vsc_cursor_extensions)\ton\tProgramming tools\tcursor' <<<"$component_rows" || {
+  printf 'FAIL: Cursor extensions should show the default config and require Cursor\n' >&2
+  exit 1
+}
+grep -Fqx $'continue\tContinue AI assistant config (default: continue/config.yaml)\ton\tProgramming tools\tcursor' <<<"$component_rows" || {
+  printf 'FAIL: Continue should show the default config and require Cursor\n' >&2
+  exit 1
+}
+if grep -Eq $'^(uv_supply_chain|tmux)\t' <<<"$component_rows"; then
+  printf 'FAIL: UV and tmux configuration should be owned by configuration setup\n' >&2
+  exit 1
+fi
+
 if grep -R -n -E '\.config/autostart|X-GNOME-Autostart-enabled' \
     "$ROOT_DIR/lib" --include='*.sh'; then
   printf 'FAIL: programming installer writes app autostart outside [S]\n' >&2

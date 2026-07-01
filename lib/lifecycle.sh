@@ -18,9 +18,6 @@ detect_cursor_extensions() {
 # detect_continue - true when the Continue assistant config is deployed.
 detect_continue() { [ -f "$TARGET_HOME/.continue/config.yaml" ]; }
 
-# detect_tmux - true when the repo tmux config is deployed.
-detect_tmux() { [ -f "$TARGET_HOME/.tmux.conf" ]; }
-
 # uninstall_cursor - remove the Cursor IDE package (root).
 uninstall_cursor() {
   if [ "$(id -u)" -ne 0 ]; then
@@ -49,10 +46,4 @@ uninstall_cursor_extensions() {
 uninstall_continue() {
   msg "Removing Continue config"
   run_as_target rm -f "$TARGET_HOME/.continue/config.yaml"
-}
-
-# uninstall_tmux - remove the deployed tmux config.
-uninstall_tmux() {
-  msg "Removing tmux config"
-  run_as_target rm -f "$TARGET_HOME/.tmux.conf"
 }
