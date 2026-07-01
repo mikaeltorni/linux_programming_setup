@@ -53,7 +53,53 @@ def test_installer_runs_continue_configuration():
     components = (ROOT_DIR / "installer/components.sh").read_text(encoding="utf-8")
 
     assert 'source "$SCRIPT_DIR/lib/continue_setup.sh"' in source
-    assert "continue|Continue AI assistant config|on|configure_continue" in components
+    assert (
+        "continue|Continue AI assistant config (default: continue/config.yaml)|on|"
+        "configure_continue|detect_continue|uninstall_continue|Programming tools|cursor"
+        in components
+    )
+
+
+def test_continue_config_name_is_resolved_inside_configs():
+    """A custom config name should be optional, relative, and traversal-safe."""
+    with tempfile.TemporaryDirectory() as td:
+        config_dir = Path(td) / "configs"
+        (config_dir / "continue").mkdir(parents=True)
+        (config_dir / "continue/config.yaml").write_text("default\n", encoding="utf-8")
+        (config_dir / "alternate.yaml").write_text("alternate\n", encoding="utf-8")
+        script = "\n".join(
+            [
+                "set -euo pipefail",
+                f"CONFIG_DIR={str(config_dir)!r}",
+                "log() { :; }",
+                "source lib/continue_setup.sh",
+                "resolve_continue_config_file </dev/null",
+            ]
+        )
+        default = subprocess.run(
+            ["bash", "-c", script], cwd=ROOT_DIR, text=True, capture_output=True
+        )
+        assert default.returncode == 0, default.stderr
+        assert default.stdout.strip() == str(config_dir / "continue/config.yaml")
+
+        custom = subprocess.run(
+            ["bash", "-c", script],
+            cwd=ROOT_DIR,
+            env={"PATH": "/usr/bin:/bin", "CONTINUE_CONFIG_NAME": "alternate.yaml"},
+            text=True,
+            capture_output=True,
+        )
+        assert custom.returncode == 0, custom.stderr
+        assert custom.stdout.strip() == str(config_dir / "alternate.yaml")
+
+        rejected = subprocess.run(
+            ["bash", "-c", script],
+            cwd=ROOT_DIR,
+            env={"PATH": "/usr/bin:/bin", "CONTINUE_CONFIG_NAME": "../outside.yaml"},
+            text=True,
+            capture_output=True,
+        )
+        assert rejected.returncode != 0
 
 
 def test_vibethinker_model_install_is_separate_optional_component():

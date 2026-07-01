@@ -14,6 +14,22 @@
 # Sourced after lib/helpers.sh. Depends on: msg, log, run_as_target.
 # Requires variables: TARGET_HOME, CONFIG_DIR, TARGET_USER.
 
+# resolve_continue_config_file — Resolve the selected Continue YAML file inside
+# CONFIG_DIR. CONTINUE_CONFIG_NAME is the noninteractive override; interactive
+# runs expose the default as editable text. Prints the validated source path.
+resolve_continue_config_file() {
+  local name="${CONTINUE_CONFIG_NAME:-continue/config.yaml}"
+  if [[ -z "${CONTINUE_CONFIG_NAME+x}" ]] && { : </dev/tty; } 2>/dev/null; then
+    read -r -e -i "$name" -p "Continue config in configs/: " name </dev/tty
+  fi
+  if [[ -z "$name" || "$name" = /* || "$name" = .. || "$name" = ../* || "$name" = */../* || "$name" = */.. ]]; then
+    log "error" "Invalid Continue config name: $name"
+    printf 'Continue config must be a relative file inside configs/.\n' >&2
+    return 2
+  fi
+  printf '%s/%s\n' "$CONFIG_DIR" "$name"
+}
+
 # continue_model_override_file — path containing the persisted Continue model key.
 continue_model_override_file() {
   printf '%s\n' "$TARGET_HOME/.config/linux-programming-setup/continue-autocomplete-model"
@@ -45,13 +61,19 @@ resolved_continue_model_key() {
 # install_continue_config — Copy the repository's Continue config.yaml into the
 # target user's ~/.continue directory (creating it with 0644 perms).
 install_continue_config() {
-  local continue_dir="$TARGET_HOME/.continue" model_key
+  local continue_dir="$TARGET_HOME/.continue" model_key config_file
   model_key="$(resolved_continue_model_key)"
+  config_file="$(resolve_continue_config_file)" || return
+  if [ ! -f "$config_file" ]; then
+    log "error" "Continue config not found at $config_file"
+    printf 'Continue config not found: %s\n' "$config_file" >&2
+    return 2
+  fi
 
   msg "Installing Continue configuration"
-  log "info" "Deploying Continue config: $CONFIG_DIR/continue/config.yaml -> $continue_dir/config.yaml"
+  log "info" "Deploying Continue config: $config_file -> $continue_dir/config.yaml"
   run_as_target install -D -m 0644 \
-    "$CONFIG_DIR/continue/config.yaml" \
+    "$config_file" \
     "$continue_dir/config.yaml"
   run_as_target python3 - "$continue_dir/config.yaml" "$model_key" <<'PY'
 from pathlib import Path
