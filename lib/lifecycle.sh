@@ -36,14 +36,16 @@ uninstall_cursor() {
 
 # uninstall_cursor_extensions - uninstall every extension listed in the file.
 uninstall_cursor_extensions() {
-  [ -f "$CURSOR_EXTENSIONS_FILE" ] || { msg "No Cursor extensions list; nothing to remove"; return 0; }
-  msg "Uninstalling Cursor extensions listed in $CURSOR_EXTENSIONS_FILE"
+  local extensions_file
+  extensions_file="$(resolve_cursor_extensions_file)" || return
+  [ -f "$extensions_file" ] || { msg "No Cursor extensions list; nothing to remove"; return 0; }
+  msg "Uninstalling Cursor extensions listed in $extensions_file"
   local ext
   while IFS= read -r ext; do
     ext="${ext%%#*}"; ext="$(printf '%s' "$ext" | tr -d '[:space:]')"
     [ -z "$ext" ] && continue
     run_as_target cursor --uninstall-extension "$ext" 2>/dev/null || true
-  done < "$CURSOR_EXTENSIONS_FILE"
+  done < "$extensions_file"
 }
 
 # uninstall_continue - remove the deployed Continue config.
