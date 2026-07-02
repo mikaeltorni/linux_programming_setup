@@ -42,8 +42,6 @@ run_and_log_with_reboot() {
   elif [ "$(id -u)" -ne 0 ]; then
     msg "Done. Log out and back in for changes to take effect (reboot skipped in user mode)."
   else
-    msg "Rebooting now in 10 seconds. Press Ctrl+C to cancel."
-    sleep 10
-    reboot
+    safe_system_action reboot
   fi
 }

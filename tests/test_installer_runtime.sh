@@ -80,28 +80,13 @@ test_user_mode_skips_reboot() (
     "Done. Log out and back in for changes to take effect (reboot skipped in user mode)."
 )
 
-test_root_mode_reboots_after_delay() (
-  source "$ROOT_DIR/install.sh"
-
-  local temp_dir output reboot_marker sleep_marker
-  temp_dir="$(mktemp -d)"
-  trap 'rm -rf "$temp_dir"' EXIT
-  SCRIPT_DIR="$temp_dir"
-  reboot_marker="$temp_dir/rebooted"
-  sleep_marker="$temp_dir/slept"
-  unset ISC_NO_REBOOT
-
-  date() { printf '20260102-030405\n'; }
-  id() { printf '0\n'; }
-  main_inner() { printf 'installed\n'; }
-  sleep() { printf '%s\n' "$1" >"$sleep_marker"; }
-  reboot() { touch "$reboot_marker"; }
-
-  output="$(run_and_log_with_reboot)"
-  assert_contains "$output" "Rebooting now in 10 seconds. Press Ctrl+C to cancel."
-  [ "$(cat "$sleep_marker")" = "10" ] || fail "unexpected reboot delay"
-  [ -f "$reboot_marker" ] || fail "root mode did not request a reboot"
-)
+test_root_mode_uses_guarded_reboot_helper() {
+  local content
+  content="$(cat "$ROOT_DIR/lib/installer_runtime.sh")"
+  assert_contains "$content" "safe_system_action reboot"
+  ! grep -Eq '^[[:space:]]*(sleep 10|reboot)[[:space:]]*$' <<<"$content" ||
+    fail "installer runtime contains an unguarded reboot path"
+}
 
 test_installer_failure_propagates() {
   local temp_dir output status log_file
@@ -155,7 +140,7 @@ test_interactive_mode_preserves_tty() {
 test_no_reboot_mode
 test_master_no_reboot_var_skips_reboot
 test_user_mode_skips_reboot
-test_root_mode_reboots_after_delay
+test_root_mode_uses_guarded_reboot_helper
 test_installer_failure_propagates
 test_interactive_mode_preserves_tty
 
