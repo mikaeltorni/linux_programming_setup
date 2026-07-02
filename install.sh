@@ -77,7 +77,7 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     case "${1:-}" in
       --list-favorite-components) lps_list_favorite_components; exit $? ;;
       --list-startup-components) lps_list_startup_components; exit $? ;;
-      --list-components|--list-configurable-components|--configure-component|--configure-component=*|--detect|--help|-h|--uninstall|--uninstall=*) component_main "$@"; exit $? ;;
+      --list-components|--list-configurable-components|--configure-component|--configure-component=*|--export-selection|--detect|--help|-h|--uninstall|--uninstall=*) component_main "$@"; exit $? ;;
     esac
     run_and_log_with_reboot "$@"
 fi
