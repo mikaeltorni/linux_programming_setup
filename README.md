@@ -14,6 +14,12 @@ enhance it and never block installation when absent.
 - **Build-time (soft):** the shared installer component framework
   [`linux_installation_scripts_functions`](https://github.com/mikaeltorni/linux_installation_scripts_functions) —
   loaded from a sibling checkout when present, otherwise downloaded on demand.
+- **Content (soft, cursor_skills):** [`programming_prompts`](https://github.com/mikaeltorni/programming_prompts)
+  supplies the skill bodies linked into each project's `.cursor/skills/`; cloned
+  on demand when the `cursor_skills` component runs and the checkout is missing.
+- **Manifest (soft, cursor_skills):** [`installation_scripts`](https://github.com/mikaeltorni/installation_scripts)
+  `scripts/repository_manifest.sh` lists which sibling projects receive the
+  deployment (`CLONE_REPOS` plus `installation_scripts` itself).
 See the full cross-repository map in
 [installation_scripts/DEPENDENCIES.md](https://github.com/mikaeltorni/installation_scripts/blob/master/DEPENDENCIES.md).
 
@@ -21,6 +27,14 @@ See the full cross-repository map in
 
 - **Cursor IDE**: Downloads and installs the Cursor IDE .deb package
 - **Cursor Extensions**: Installs extensions into Cursor from an optionally selected list under `configs/`
+- **Cursor skills (programming_prompts)**: Links every skill from the sibling
+  [`programming_prompts`](https://github.com/mikaeltorni/programming_prompts)
+  repository into each setup-chain project's
+  `.cursor/skills/programming-prompts/<skill>/` folder, writes an
+  `alwaysApply` Cursor rule so **General Programming Guidelines** inject on
+  every Agent prompt, and adds a selective `.gitignore` that covers only those
+  managed paths (project-specific `.cursor/skills/<other>/` skills stay
+  trackable)
 - **Continue AI**: Installs an optionally selected Continue config and the LM Studio autocomplete profile; the vibethinker model download is a separate default-on component
 - **Desktop integration**: Cursor can be marked as a dock favorite, startup app, and workspace-assigned app in the master menu
 
@@ -50,6 +64,10 @@ sudo ISC_NO_REBOOT=1 bash install.sh
 | `CONTINUE_AUTOCOMPLETE_MODEL_SOURCE` | Hugging Face repository URL or exact `owner/model@quant` source | (prompted) |
 | `CONTINUE_AUTOCOMPLETE_MODEL_URL` | GGUF URL used by the default-off custom autocomplete component | (prompted) |
 | `CONTINUE_AUTOCOMPLETE_MODEL_SHA256` | Optional custom GGUF checksum | empty |
+| `PROGRAMMING_PROMPTS_DIR` | Checkout used as the Cursor skill source | `$TARGET_HOME/projects/programming_prompts` |
+| `PROJECTS_DIR` | Sibling projects directory that receives skill links | `$TARGET_HOME/projects` |
+| `INSTALLATION_SCRIPTS_DIR` | Manifest source for `CLONE_REPOS` | `$TARGET_HOME/projects/installation_scripts` |
+| `CURSOR_SKILLS_REPOS` | Override the target repo list (space/comma separated) | (from `CLONE_REPOS` + `installation_scripts`) |
 
 ## Managing Extensions
 
@@ -91,8 +109,35 @@ linux_programming_setup/
     ├── gsettings_strv.py         # GSettings string-array parser/formatter
     ├── logging_utils.py          # Centralized Python logging helper
     ├── cursor_install.sh         # Cursor IDE installation and extensions
+    ├── cursor_skills.sh          # Deploy programming_prompts into project .cursor/
+    ├── cursor_skills.py          # Symlink skills, always-on rule, selective gitignore
     ├── continue_setup.sh         # Continue config and model profile deployment
     └── installer_runtime.sh      # Installer logging and reboot policy
+```
+
+## Cursor skills from programming_prompts
+
+The `cursor_skills` component (default on) deploys the content-only
+`programming_prompts` skills into every repository listed in the master
+`CLONE_REPOS` manifest, plus `installation_scripts` itself:
+
+| Path | Purpose |
+|------|---------|
+| `.cursor/skills/programming-prompts/<skill>/` | Symlink to the authoritative skill under `programming_prompts` (one folder per skill). Cursor walks nested skill categories, so discovery works. |
+| `.cursor/rules/programming-prompts-always-on.mdc` | `alwaysApply: true` rule that forces General Programming Guidelines on every Agent chat. Skills alone are relevance-based; Cursor's always-on mechanism is rules. |
+| `.gitignore` managed block | Ignores **only** the two managed paths above — never `.cursor/skills/` wholesale — so project-specific skills remain commit-able. |
+
+Managed skills currently include: `general-programming-guidelines`, `init-project`,
+`refactoring`, `setup-repository-guidelines`, `commit`, and `linux-configuration`.
+None set `disable-model-invocation`, so Cursor auto-applies them when relevant;
+use `/skill-name` to force one.
+
+```bash
+# Deploy (or refresh) into every setup-chain project
+bash install.sh --select cursor_skills
+
+# Verify
+bash install.sh --detect | grep cursor_skills
 ```
 
 ## Continue AI Configuration

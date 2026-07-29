@@ -18,6 +18,9 @@ detect_cursor_extensions() {
 # detect_continue - true when the Continue assistant config is deployed.
 detect_continue() { [ -f "$TARGET_HOME/.continue/config.yaml" ]; }
 
+# detect_cursor_skills / uninstall_cursor_skills live in lib/cursor_skills.sh
+# (they span every setup-chain project, not only this repository).
+
 # uninstall_cursor - remove the Cursor IDE package (root).
 uninstall_cursor() {
   if [ "$(id -u)" -ne 0 ]; then
