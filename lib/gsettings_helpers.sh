@@ -8,6 +8,8 @@
 # Sourced after lib/helpers.sh. Depends on: need_cmd, run_as_target.
 
 PROGRAMMING_GSETTINGS_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lps_bin.sh
+source "$PROGRAMMING_GSETTINGS_LIB_DIR/lps_bin.sh"
 
 # ── GSettings wrapper ────────────────────────────────────────────────────────
 
@@ -37,6 +39,6 @@ append_gsettings_list() {
     log "warn" "Could not read GSettings key $schema $key; leaving it unchanged"
     return 1
   fi
-  newlist="$(CURRENT="$current" python3 "$PROGRAMMING_GSETTINGS_LIB_DIR/gsettings_strv.py" "$value")"
+  newlist="$(CURRENT="$current" lps_bin "$value")"
   user_gsettings set "$schema" "$key" "$newlist"
 }
