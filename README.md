@@ -106,7 +106,7 @@ linux_programming_setup/
     ├── apt_helpers.sh            # Root-optional APT package installation
     ├── helpers.sh                # Core utility functions and logging
     ├── gsettings_helpers.sh      # GSettings list manipulation helpers
-    ├── gsettings_strv.py         # GSettings string-array parser/formatter
+    ├── lps_bin.sh                # Builds/runs the Rust lps-tools GSettings helper
     ├── logging_utils.py          # Centralized Python logging helper
     ├── cursor_install.sh         # Cursor IDE installation and extensions
     ├── cursor_skills.sh          # Deploy programming_prompts into project .cursor/

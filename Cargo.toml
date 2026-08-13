@@ -1,0 +1,11 @@
+[package]
+name = "lps-tools"
+version = "0.1.0"
+edition = "2021"
+description = "Installer helpers for the linux-programming-setup GNOME extension"
+license = "MIT"
+publish = false
+
+[[bin]]
+name = "lps-tools"
+path = "src/main.rs"
