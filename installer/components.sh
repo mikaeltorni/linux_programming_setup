@@ -33,5 +33,7 @@ lps_list_favorite_components() {
 # controlled by the master installer's [S] action.
 # Output: component id<TAB>desktop candidates<TAB>default selection.
 lps_list_startup_components() {
-  printf 'cursor\tcursor.desktop\ton\n'
+  # The master menu uses one-based monitor numbers; monitor 1 is the primary
+  # display and is persisted with the startup rule for deterministic launches.
+  printf 'cursor\tcursor.desktop\ton\t1\n'
 }
