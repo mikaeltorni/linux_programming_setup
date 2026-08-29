@@ -38,8 +38,8 @@ grep -Fqx $'cursor_extensions\tCursor extensions (default: vsc_cursor_extensions
   printf 'FAIL: Cursor extensions should show the default config and require Cursor\n' >&2
   exit 1
 }
-grep -Fqx $'continue\tContinue AI assistant config (default: continue/config.yaml)\ton\tProgramming tools\tcursor' <<<"$component_rows" || {
-  printf 'FAIL: Continue should show the default config and require Cursor\n' >&2
+grep -Fqx $'continue\tContinue AI assistant config (default: continue/config.yaml)\toff\tProgramming tools\tcursor' <<<"$component_rows" || {
+  printf 'FAIL: Continue should remain available but default off in favor of Cursor Autotab\n' >&2
   exit 1
 }
 if grep -Eq $'^(uv_supply_chain|tmux)\t' <<<"$component_rows"; then

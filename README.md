@@ -146,15 +146,16 @@ The `configs/continue/config.yaml` file configures the Continue VS Code/Cursor
 extension to use VibeThinker 1.5B via LM Studio's local OpenAI-compatible API
 endpoint (`http://localhost:1234/v1`).
 
-The installer copies the editor configuration to `~/.continue/config.yaml` and
+When explicitly selected, the installer copies the editor configuration to `~/.continue/config.yaml` and
 the model profile to
 `~/.config/linux-programming-setup/lmstudio/autocomplete.env`. Agent Command
 Center's shared LM Studio boot service reads that optional profile and loads
 the model after the coding-agent model.
 
-The vibethinker model download itself is not hidden inside the Continue config
-component. Keep `continue_vibethinker_model` selected for the default autocomplete
-model, or deselect it when no Programming-owned local model should be installed.
+The VibeThinker model download itself is not hidden inside the Continue config
+component. Both Continue components default off because Cursor Autotab is the
+standard completion path. Select `continue_vibethinker_model` and `continue`
+explicitly when the legacy local Continue setup is wanted.
 In either the standalone or master submenu, highlight the default-off
 `continue_custom_model` row and press `→` to show its one source prompt for a
 Hugging Face repository URL or `owner/model@quant`, delegates parsing and the
@@ -207,11 +208,11 @@ or none, and **Enter** installs the selection. Components:
 
 | Component id | Description | Default |
 |---|---|---|
-| `continue_vibethinker_model` | Continue VibeThinker autocomplete model | on |
+| `continue_vibethinker_model` | Continue VibeThinker autocomplete model | off |
 | `continue_custom_model` | Custom Continue autocomplete model (URL or `owner/model@quant`) | off |
 | `cursor` | Cursor IDE | on |
 | `cursor_extensions` | Cursor extensions (default: `vsc_cursor_extensions`; requires Cursor) | on |
-| `continue` | Continue AI assistant config (default: `continue/config.yaml`; requires Cursor) | on |
+| `continue` | Continue AI assistant config (default: `continue/config.yaml`; requires Cursor) | off |
 
 Cursor favorite, login startup, and workspace assignment are controlled by the
 `[F]`, `[S]`, and `[1-9]` actions on its application row in the master menu. The

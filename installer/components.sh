@@ -15,12 +15,12 @@ ISC_PREFLIGHT="ensure_session_bus"
 ISC_POSTFLIGHT="report_sudo_required"
 
 ISC_COMPONENTS=(
-  "continue_vibethinker_model|Continue VibeThinker autocomplete model|on|ensure_lmstudio_vibethinker|detect_continue_vibethinker_model|uninstall_continue_vibethinker_model|Models"
+  "continue_vibethinker_model|Continue VibeThinker autocomplete model|off|ensure_lmstudio_vibethinker|detect_continue_vibethinker_model|uninstall_continue_vibethinker_model|Models"
   "continue_custom_model|Custom Continue autocomplete model (URL or owner/model@quant)|off|install_custom_continue_autocomplete_model|detect_custom_continue_autocomplete_model|uninstall_custom_continue_autocomplete_model|Models||configure_custom_continue_model_source"
   "cursor|Cursor IDE|on|install_cursor|detect_cursor|uninstall_cursor|Desktop applications"
   "cursor_extensions|Cursor extensions (default: vsc_cursor_extensions)|on|install_cursor_extensions|detect_cursor_extensions|uninstall_cursor_extensions|Programming tools|cursor"
   "cursor_skills|Cursor skills from programming_prompts (always-on guidelines)|on|install_cursor_skills|detect_cursor_skills|uninstall_cursor_skills|Programming tools"
-  "continue|Continue AI assistant config (default: continue/config.yaml)|on|configure_continue|detect_continue|uninstall_continue|Programming tools|cursor"
+  "continue|Continue AI assistant config (default: continue/config.yaml)|off|configure_continue|detect_continue|uninstall_continue|Programming tools|cursor"
 )
 
 # lps_list_favorite_components - Publish Cursor as a dock-favorite candidate.

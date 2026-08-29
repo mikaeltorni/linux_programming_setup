@@ -48,13 +48,13 @@ def test_configure_continue_installs_editor_config_and_model_profile():
 
 
 def test_installer_runs_continue_configuration():
-    """The main installer should deploy Continue and autocomplete settings."""
+    """Continue remains available but is not selected over Cursor Autotab."""
     source = (ROOT_DIR / "install.sh").read_text(encoding="utf-8")
     components = (ROOT_DIR / "installer/components.sh").read_text(encoding="utf-8")
 
     assert 'source "$SCRIPT_DIR/lib/continue_setup.sh"' in source
     assert (
-        "continue|Continue AI assistant config (default: continue/config.yaml)|on|"
+        "continue|Continue AI assistant config (default: continue/config.yaml)|off|"
         "configure_continue|detect_continue|uninstall_continue|Programming tools|cursor"
         in components
     )
@@ -103,15 +103,27 @@ def test_continue_config_name_is_resolved_inside_configs():
 
 
 def test_vibethinker_model_install_is_separate_optional_component():
-    """The LM Studio vibethinker download should be selectable separately."""
+    """The LM Studio VibeThinker option remains available and default-off."""
     components = (ROOT_DIR / "installer" / "components.sh").read_text(encoding="utf-8")
     continue_source = (ROOT_DIR / "lib" / "continue_setup.sh").read_text(encoding="utf-8")
 
-    assert "continue_vibethinker_model|Continue VibeThinker autocomplete model|on|" in components
+    assert "continue_vibethinker_model|Continue VibeThinker autocomplete model|off|" in components
     assert 'LMSTUDIO_ADD_MODELS="vibethinker"' in continue_source
     assert "--select lm_studio_app,serve,models" in continue_source
     configure_body = continue_source.split("configure_continue()", 1)[1].split("}", 1)[0]
     assert "ensure_lmstudio_vibethinker" not in configure_body
+
+
+def test_continue_defaults_are_disabled_but_configuration_is_retained():
+    """Cursor Autotab is the default while optional Continue assets remain shipped."""
+    defaults = json.loads(
+        (ROOT_DIR / "installation_configs" / "default.json").read_text(encoding="utf-8")
+    )
+
+    assert defaults["components"]["continue"]["on"] == 0
+    assert defaults["components"]["continue_vibethinker_model"]["on"] == 0
+    assert (ROOT_DIR / "configs" / "continue" / "config.yaml").is_file()
+    assert (ROOT_DIR / "configs" / "lmstudio" / "autocomplete.env").is_file()
 
 
 def test_vibethinker_detection_requires_selected_downloaded_weight():
