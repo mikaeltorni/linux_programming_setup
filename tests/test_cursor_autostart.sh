@@ -6,7 +6,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
 startup_output="$(bash "$ROOT_DIR/install.sh" --list-startup-components)"
-[ "$startup_output" = $'cursor\tcursor.desktop\ton' ] || {
+[ "$startup_output" = $'cursor\tcursor.desktop\ton\t1' ] || {
   printf 'FAIL: Cursor startup metadata mismatch: %q\n' "$startup_output" >&2
   exit 1
 }
