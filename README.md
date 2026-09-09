@@ -170,19 +170,12 @@ therefore do not require a per-model switch environment variable.
 
 MIT License — see LICENSE.md
 
-## Part of 7-Repo Desktop Setup Chain
+## Setup-chain membership
 
-This repository is **Phase 5** in the desktop setup chain:
-
-1. `linux_installations_setup` — Base packages, hardware, apps
-2. `linux_configuration_setup` — GNOME desktop, autostart, GSettings
-3. `linux_hotkey_setup` — GNOME hotkeys and workspace bindings
-4. `agent_command_center` — Agent command center components
-5. **`linux_programming_setup` (this repo)** — Cursor IDE, VS Code extensions
-6. `ubuntu_2404_taskbar_system_status_monitor` — Taskbar system monitor extension
-7. `phrase_automation` — Phrase automation tmux service
-
-It is automatically cloned and run by the main installer (`installation_scripts/install.sh`).
+This repository is cloned and run by the master installer
+(`installation_scripts/install.sh`). Membership and order live in
+`installation_scripts/scripts/repository_manifest.sh`; the dependency map is
+[`installation_scripts/DEPENDENCIES.md`](https://github.com/mikaeltorni/installation_scripts/blob/master/DEPENDENCIES.md).
 
 ## Component selection
 
