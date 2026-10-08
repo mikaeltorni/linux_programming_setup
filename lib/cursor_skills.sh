@@ -64,15 +64,25 @@ cursor_skills_repo_list() {
   printf '%s\n' "${repos[*]}"
 }
 
-# _cursor_skills_py — Run the Python deployer as the target user.
-# Arguments: action (install|uninstall|detect) plus optional extra args.
-# Returns: the Python process exit status.
-_cursor_skills_py() {
+# Resolve/build the native deployer and install it into the target user's command directory.
+# Parameters: action - install/uninstall/detect; remaining tokens - CLI overrides.
+# Returns: native process status/output; discovery never builds or downloads.
+_cursor_skills_native() {
   local action="$1"
   shift
   local repos
   repos="$(cursor_skills_repo_list)" || return
-  run_as_target python3 "$SCRIPT_DIR/lib/cursor_skills.py" "$action" \
+  local bin candidate
+  if [[ "$action" == detect ]]; then
+    for candidate in "$SCRIPT_DIR/dist/cursor-skills" "$SCRIPT_DIR/target/release/cursor-skills" "$TARGET_HOME/.local/bin/cursor-skills"; do
+      [[ -x "$candidate" ]] && { bin="$candidate"; break; }
+    done
+    [[ -n "${bin:-}" ]] || { printf 'absent\n'; return 1; }
+  else
+    bin="$(bash "$SCRIPT_DIR/scripts/build_lps_tools.sh" --bin cursor-skills --print)" || return 1
+    run_as_target install -D -m 0755 "$bin" "$TARGET_HOME/.local/bin/cursor-skills" || return $?
+  fi
+  run_as_target "$bin" "$action" \
     --projects-dir "$PROJECTS_DIR" \
     --prompts-dir "$PROGRAMMING_PROMPTS_DIR" \
     --repos "$repos" \
@@ -81,7 +91,7 @@ _cursor_skills_py() {
 
 # install_cursor_skills — Link every programming_prompts skill into each
 # setup-chain project and write the always-on Cursor rule + selective gitignore.
-# Arguments: none.
+# Parameters: none; source/target repository variables identify the deployment.
 # Returns: 0 on success; non-zero when prompts are missing or no projects deploy.
 install_cursor_skills() {
   msg "Deploying programming_prompts Cursor skills into setup-chain projects"
@@ -92,22 +102,24 @@ install_cursor_skills() {
     printf '%s\n' "programming_prompts checkout is required for cursor_skills." >&2
     return 2
   fi
-  _cursor_skills_py install
+  _cursor_skills_native install
 }
 
 # detect_cursor_skills — True when every existing target checkout has the
 # managed guidelines skill and always-on rule.
+# Parameters: none; configured repositories identify target assets. Returns: zero if installed.
 detect_cursor_skills() {
   local out
-  out="$(_cursor_skills_py detect 2>/dev/null)" || return 1
+  out="$(_cursor_skills_native detect 2>/dev/null)" || return 1
   [ "$out" = "installed" ]
 }
 
 # uninstall_cursor_skills — Remove managed Cursor skill links, always-on rule,
 # and the managed gitignore block from each target project. Project-specific
 # skills outside programming-prompts/ are left untouched.
+# Parameters: none; configured repositories identify managed assets. Returns: zero.
 uninstall_cursor_skills() {
   msg "Removing managed programming_prompts Cursor skills from setup-chain projects"
   log "info" "Uninstalling managed Cursor skills from $PROJECTS_DIR"
-  _cursor_skills_py uninstall || true
+  _cursor_skills_native uninstall || true
 }
