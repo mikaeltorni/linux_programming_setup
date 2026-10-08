@@ -16,6 +16,34 @@
 
 LMSTUDIO_LOCAL_AGENTS_DIR="${LMSTUDIO_LOCAL_AGENTS_DIR:-${TARGET_HOME:-${HOME:-/tmp}}/projects/linux_lmstudio_local_agents}"
 LMSTUDIO_LOCAL_AGENTS_REPO_URL="${LMSTUDIO_LOCAL_AGENTS_REPO_URL:-https://github.com/mikaeltorni/linux_lmstudio_local_agents.git}"
+CONTINUE_TOOLS_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# Invoke native config helpers; detection never compiles or downloads.
+# Parameters: command and complete operands. Returns: native status/output.
+continue_tools() {
+  local bin candidate
+  if [[ "${1:-}" == model-present ]]; then
+    for candidate in "$CONTINUE_TOOLS_ROOT/dist/continue-tools" "$CONTINUE_TOOLS_ROOT/target/release/continue-tools" "$TARGET_HOME/.local/bin/continue-tools"; do
+      [[ -x "$candidate" ]] && { bin="$candidate"; break; }
+    done
+    [[ -n "${bin:-}" ]] || return 1
+    "$bin" "$@"
+    return $?
+  else
+    bin="$(bash "$CONTINUE_TOOLS_ROOT/scripts/build_lps_tools.sh" --bin continue-tools --print)" || return 1
+    run_as_target install -D -m 0755 "$bin" "$TARGET_HOME/.local/bin/continue-tools" || return $?
+  fi
+  run_as_target "$bin" "$@"
+}
+
+# Resolve the model owner's native command without importing its globals here.
+# Parameters: none; LMSTUDIO_LOCAL_AGENTS_DIR identifies the model owner.
+# Returns: native CLI path or dependency/build failure.
+continue_lmstudio_cli() (
+  [[ -f "$LMSTUDIO_LOCAL_AGENTS_DIR/lib/lm_studio.sh" ]] || return 2
+  source "$LMSTUDIO_LOCAL_AGENTS_DIR/lib/lm_studio.sh"
+  lmla_models_cli
+)
 
 # ensure_continue_lmstudio_owner — resolve the public model-owner dependency for
 # a standalone checkout. Existing checkouts are left untouched; a missing one
@@ -58,6 +86,9 @@ continue_model_source_file() {
 # configure_custom_continue_model_source — collect and validate the single
 # Hugging Face URL / owner-model-quant field shown from RIGHT in either menu.
 # This only saves configuration; the component install performs the download.
+# Validate and persist the selected model source with the native owner.
+# Parameters: none; existing installer variables identify sources, target and model.
+# Returns: operation status; unrelated settings remain with their current owners.
 configure_custom_continue_model_source() {
   local source="${CONTINUE_AUTOCOMPLETE_MODEL_SOURCE:-}"
   ensure_continue_lmstudio_owner || return 1
@@ -66,12 +97,12 @@ configure_custom_continue_model_source() {
     read -r -p "Hugging Face URL or owner/model@quant: " source </dev/tty
   fi
   [ -n "$source" ] || return 1
-  if [ ! -f "$owner/scripts/lmstudio_models.py" ]; then
+  if [ ! -f "$owner/lib/lm_studio.sh" ]; then
     log "error" "LM Studio model owner is unavailable at $owner"
     printf '%s\n' "Clone linux_lmstudio_local_agents beside this repository before configuring a custom model." >&2
     return 2
   fi
-  python3 "$owner/scripts/lmstudio_models.py" profile-from-source \
+  "$(continue_lmstudio_cli)" profile-from-source \
     --catalog "$owner/configs/lmstudio/model-profiles.json" --source "$source" >/dev/null
   local source_file
   source_file="$(continue_model_source_file)"
@@ -106,6 +137,9 @@ resolved_continue_model_key() {
 
 # install_continue_config — Copy the repository's Continue config.yaml into the
 # target user's ~/.continue directory (creating it with 0644 perms).
+# Deploy the selected YAML with native template replacement.
+# Parameters: none; existing installer variables identify sources, target and model.
+# Returns: operation status; unrelated settings remain with their current owners.
 install_continue_config() {
   local continue_dir="$TARGET_HOME/.continue" model_key config_file
   model_key="$(resolved_continue_model_key)"
@@ -121,17 +155,7 @@ install_continue_config() {
   run_as_target install -D -m 0644 \
     "$config_file" \
     "$continue_dir/config.yaml"
-  run_as_target python3 - "$continue_dir/config.yaml" "$model_key" <<'PY'
-from pathlib import Path
-import sys
-
-path = Path(sys.argv[1])
-model_key = sys.argv[2]
-text = path.read_text(encoding="utf-8")
-text = text.replace("name: VibeThinker 1.5B LM Studio", f"name: {model_key} LM Studio")
-text = text.replace("model: vibethinker-1.5b", f"model: {model_key}")
-path.write_text(text, encoding="utf-8")
-PY
+  continue_tools yaml "$continue_dir/config.yaml" "$model_key"
 }
 
 # ensure_lmstudio_vibethinker — Install only the vibethinker model that Continue
@@ -161,6 +185,9 @@ ensure_lmstudio_vibethinker() {
 # install_custom_continue_autocomplete_model — prompt for or consume custom
 # CONTINUE_AUTOCOMPLETE_MODEL_* fields, add a switch-free keep-on model through
 # the LM Studio owner, and persist the model key used by Continue.
+# Delegate custom model installation and persist the selected key.
+# Parameters: none; existing installer variables identify sources, target and model.
+# Returns: operation status; unrelated settings remain with their current owners.
 install_custom_continue_autocomplete_model() {
   local name="${CONTINUE_AUTOCOMPLETE_MODEL_NAME:-}"
   local model_key="${CONTINUE_AUTOCOMPLETE_MODEL_KEY:-}"
@@ -178,11 +205,10 @@ install_custom_continue_autocomplete_model() {
   if [ -n "$source" ]; then
     ensure_continue_lmstudio_owner || return 1
     local profile_json
-    profile_json="$(python3 "$LMSTUDIO_LOCAL_AGENTS_DIR/scripts/lmstudio_models.py" \
+    profile_json="$("$(continue_lmstudio_cli)" \
       profile-from-source --catalog "$LMSTUDIO_LOCAL_AGENTS_DIR/configs/lmstudio/model-profiles.json" \
       --source "$source")" || return 2
-    IFS=$'\t' read -r name model_key < <(printf '%s' "$profile_json" | python3 -c \
-      'import json,sys; p=json.load(sys.stdin); print(p["description"]+"\t"+p["model_key"])')
+    IFS=$'\t' read -r name model_key < <(printf '%s' "$profile_json" | continue_tools profile-fields)
   fi
   if [ -z "$source" ] && { [ -z "$model_key" ] || [ -z "$url" ]; }; then
     log "error" "Custom Continue model requires a Hugging Face source"
@@ -222,6 +248,9 @@ install_custom_continue_autocomplete_model() {
 # profile and, if the shared LM Studio user service is already installed,
 # restart it so the new profile takes effect immediately.
 # Arguments: none. Returns: 0 (restart failures degrade to a warning).
+# Deploy the native env replacement and retain the existing service policy.
+# Parameters: none; existing installer variables identify sources, target and model.
+# Returns: operation status; unrelated settings remain with their current owners.
 install_lmstudio_autocomplete_profile() {
   local profile_dir="$TARGET_HOME/.config/linux-programming-setup/lmstudio" model_key
   local service_name="${LMSTUDIO_USER_SERVICE_NAME:-lmstudio-serve.service}"
@@ -232,19 +261,7 @@ install_lmstudio_autocomplete_profile() {
   run_as_target install -D -m 0644 \
     "$CONFIG_DIR/lmstudio/autocomplete.env" \
     "$profile_dir/autocomplete.env"
-  run_as_target python3 - "$profile_dir/autocomplete.env" "$model_key" <<'PY'
-from pathlib import Path
-import sys
-
-path = Path(sys.argv[1])
-model_key = sys.argv[2]
-text = path.read_text(encoding="utf-8")
-text = text.replace(
-    'LMSTUDIO_AUTOCOMPLETE_LOAD_MODEL="vibethinker-1.5b"',
-    f'LMSTUDIO_AUTOCOMPLETE_LOAD_MODEL="{model_key}"',
-)
-path.write_text(text, encoding="utf-8")
-PY
+  continue_tools env "$profile_dir/autocomplete.env" "$model_key"
 
   # linux_lmstudio_local_agents owns the shared LM Studio service. Restart it
   # when it is already installed so a standalone programming-setup run takes
@@ -270,26 +287,13 @@ configure_continue() {
 
 # detect_continue_vibethinker_model — true when VibeThinker is selected and its
 # downloaded weight exists at the path recorded by the LM Studio owner catalog.
+# Query selected catalog and weight state without asset mutation.
+# Parameters: none; existing installer variables identify sources, target and model.
+# Returns: operation status; unrelated settings remain with their current owners.
 detect_continue_vibethinker_model() {
   local catalog="$TARGET_HOME/.config/lmstudio-local-agents/configs/lmstudio/model-profiles.json"
   [ -f "$catalog" ] || return 1
-  python3 - "$catalog" "$TARGET_HOME/.lmstudio/models" <<'PY'
-import json
-import sys
-from pathlib import Path
-
-catalog, models_dir = sys.argv[1:3]
-try:
-    profiles = json.load(open(catalog, encoding="utf-8")).get("profiles", [])
-except (OSError, ValueError):
-    raise SystemExit(1)
-for profile in profiles:
-    if profile.get("id") == "vibethinker" and profile.get("default_install"):
-        raise SystemExit(
-            0 if (Path(models_dir) / str(profile.get("model_path") or "")).is_file() else 1
-        )
-raise SystemExit(1)
-PY
+  continue_tools model-present "$catalog" "$TARGET_HOME/.lmstudio/models"
 }
 
 # detect_custom_continue_autocomplete_model — true when an override is persisted.
