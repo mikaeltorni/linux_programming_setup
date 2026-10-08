@@ -9,3 +9,7 @@ publish = false
 [[bin]]
 name = "lps-tools"
 path = "src/main.rs"
+
+[[bin]]
+name = "cursor-skills"
+path = "src/bin/cursor-skills.rs"

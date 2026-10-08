@@ -1,0 +1,31 @@
+---
+alwaysApply: true
+---
+
+# Programming prompts (managed)
+
+These instructions apply to **every** Agent chat in this repository. They are
+installed from `programming_prompts` by `linux_programming_setup` and must not
+be edited by hand.
+
+## Mandatory on every prompt
+
+Before any software edit, load and follow the complete skill:
+
+`.cursor/skills/programming-prompts/general-programming-guidelines/SKILL.md`
+
+Use `/general-programming-guidelines` when you need to re-invoke it. Do not skip
+it for "small" changes.
+
+## Other skills (auto when relevant)
+
+Cursor discovers the remaining managed skills under
+`.cursor/skills/programming-prompts/`. They have **no**
+`disable-model-invocation` flag, so the agent auto-applies them when the task
+matches their descriptions. Invoke with `/skill-name` to force them.
+
+- `commit`
+
+Project-specific skills may live beside the managed category as
+`.cursor/skills/<your-skill>/` — those are never managed or gitignored by this
+installer.
