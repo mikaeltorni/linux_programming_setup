@@ -124,6 +124,26 @@ fn deployment_and_detection_round_trip_preserve_user_assets() {
 }
 
 #[test]
+/// Detect a current prompt deployment without the retired guidelines link.
+/// Parameters: none.
+/// Returns: None.
+fn detects_current_skill_layout_without_retired_guidelines() {
+    eprintln!("parameters=none");
+    let (root, prompts, projects) = fixture("current-skills");
+    fs::rename(
+        prompts.join("skills/general-programming-guidelines"),
+        prompts.join("skills/workflow"),
+    )
+    .unwrap();
+    assert!(run("install", &projects, &prompts, "demo").status.success());
+    observe(&projects, &prompts, ("installed\n", 0));
+    fs::remove_file(projects.join("demo/.cursor/rules/programming-prompts-always-on.mdc")).unwrap();
+    observe(&projects, &prompts, ("absent\n", 1));
+    fs::remove_dir_all(root).unwrap();
+    eprintln!("()");
+}
+
+#[test]
 /// Migrate a managed stale link and reject unrelated files without clobbering them.
 /// Parameters: none.
 /// Returns: None.
@@ -230,10 +250,11 @@ fn rejected_argument_shapes_leave_existing_assets_intact() {
 }
 
 #[test]
-/// Preserve missing-checkout and missing-guidelines detection from the original CLI.
+/// Report absence until an existing checkout contains a managed skill and rule.
 /// Parameters: none.
 /// Returns: None.
-fn absent_projects_and_missing_guidelines_keep_original_exit_codes() {
+fn absent_projects_and_empty_skill_deployments_report_absent() {
+    eprintln!("parameters=none");
     let (root, prompts, projects) = fixture("missing");
     assert_eq!(
         run("install", &projects, &prompts, "missing").status.code(),
@@ -247,6 +268,9 @@ fn absent_projects_and_missing_guidelines_keep_original_exit_codes() {
         run("install", &projects, &prompts, "demo").status.code(),
         Some(0)
     );
+    observe(&projects, &prompts, ("installed\n", 0));
+    fs::remove_file(projects.join("demo/.cursor/skills/programming-prompts/commit")).unwrap();
     observe(&projects, &prompts, ("absent\n", 1));
     fs::remove_dir_all(root).unwrap();
+    eprintln!("()");
 }
