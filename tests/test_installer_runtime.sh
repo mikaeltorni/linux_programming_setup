@@ -17,9 +17,12 @@ assert_contains() {
 }
 
 test_no_reboot_mode() (
+  # Verify that two same-second invocations retain their own output.
+  # Parameters: none. Returns: zero when both logs and reboot policy pass.
+  printf '%s\n' 'parameters=none'
   source "$ROOT_DIR/install.sh"
 
-  local temp_dir output log_file
+  local temp_dir output log_file second_output second_log_file
   temp_dir="$(mktemp -d)"
   trap 'rm -rf "$temp_dir"' EXIT
   SCRIPT_DIR="$temp_dir"
@@ -30,13 +33,21 @@ test_no_reboot_mode() (
   reboot() { fail "reboot called in no-reboot mode"; }
 
   output="$(run_and_log_with_reboot "editor")"
-  log_file="$temp_dir/.log/linux_programming_setup-20260102-030405.log"
+  log_file="${output##*Log file written to: }"
+  log_file="${log_file%%$'\n'*}"
 
   [ -f "$log_file" ] || fail "installer log was not created"
   [ "$(cat "$log_file")" = "installed:editor" ] ||
     fail "installer output was not written to the log"
   assert_contains "$output" "All done. Log file written to: $log_file"
   assert_contains "$output" "Skipping reboot due to ISC_NO_REBOOT/INSTALLER_NO_REBOOT"
+  second_output="$(run_and_log_with_reboot "skills")"
+  second_log_file="${second_output##*Log file written to: }"
+  second_log_file="${second_log_file%%$'\n'*}"
+  [ "$second_log_file" != "$log_file" ] || fail "same-second installer runs reused a log"
+  [ "$(cat "$log_file")" = "installed:editor" ] || fail "second run overwrote the first installer log"
+  [ "$(cat "$second_log_file")" = "installed:skills" ] || fail "second run output was not logged"
+  printf '0\n'
 )
 
 test_master_no_reboot_var_skips_reboot() (
@@ -89,10 +100,13 @@ test_root_mode_uses_guarded_reboot_helper() {
 }
 
 test_installer_failure_propagates() {
-  local temp_dir output status log_file
+  # Check that failures retain their output and return status.
+  # Parameters: none. Returns: zero when the failed invocation is recorded.
+  printf '%s\n' 'parameters=none'
+  local temp_dir output status
+  local -a logs
   temp_dir="$(mktemp -d)"
   trap 'rm -rf "$temp_dir"' RETURN
-  log_file="$temp_dir/.log/linux_programming_setup-20260102-030405.log"
 
   set +e
   output="$(
@@ -112,11 +126,13 @@ test_installer_failure_propagates() {
   set -e
 
   [ "$status" -eq 23 ] || fail "installer failure status was not propagated"
-  [ "$(cat "$log_file")" = "failed install" ] ||
+  logs=("$temp_dir"/.log/linux_programming_setup-20260102-030405*.log)
+  [ "${#logs[@]}" -eq 1 ] && [ "$(cat "${logs[0]}")" = "failed install" ] ||
     fail "failed installer output was not logged"
   if grep -Fq "All done." <<<"$output"; then
     fail "success message was emitted after installer failure"
   fi
+  printf '0\n'
 }
 
 test_interactive_mode_preserves_tty() {
