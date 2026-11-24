@@ -352,10 +352,11 @@ fn uninstall_project(project: &Path) -> Result<(), String> {
     remove_gitignore(&project)
 }
 
-/// Detect the original guidelines link/rule requirements across existing checkouts.
+/// Detect a managed skill link and rule in each existing target checkout.
 /// Parameters: projects - parent directory; repos - target repository names.
 /// Returns: true only if at least one checkout exists and every existing one matches.
 fn detect(projects: &Path, repos: &[String]) -> bool {
+    eprintln!("projects={projects:?} repos={repos:?}");
     let mut seen = false;
     for name in repos {
         let project = projects.join(name);
@@ -363,15 +364,18 @@ fn detect(projects: &Path, repos: &[String]) -> bool {
             continue;
         }
         seen = true;
-        if !project
-            .join(CATEGORY)
-            .join("general-programming-guidelines")
-            .exists()
-            || !project.join(RULE).is_file()
-        {
+        let has_skill_link = fs::read_dir(project.join(CATEGORY)).is_ok_and(|entries| {
+            entries.filter_map(Result::ok).any(|entry| {
+                entry.file_type().is_ok_and(|kind| kind.is_symlink())
+                    && entry.path().join("SKILL.md").is_file()
+            })
+        });
+        if !has_skill_link || !project.join(RULE).is_file() {
+            eprintln!("false");
             return false;
         }
     }
+    eprintln!("{seen}");
     seen
 }
 
