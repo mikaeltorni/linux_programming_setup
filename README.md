@@ -1,8 +1,27 @@
-# Linux Programming Setup
+# Linux Programming Setup — Cursor editor setup on Ubuntu
 
-> Part of [installation_scripts](https://github.com/mikaeltorni/installation_scripts) — the master installer that orchestrates a productivity-focused Ubuntu 24.04 desktop setup (workspaces, hotkeys, window tiling, programming tools, and more). Tested on Ubuntu 24.04.4 LTS.
+Linux Programming Setup is a Cursor editor setup installer for Ubuntu developers who want
+reproducible extensions, coding skills, and optional Continue configuration.
 
-Cursor IDE installation, VS Code extension management, and Continue AI assistant configuration.
+[![Last commit: 2026-11-24](docs/badges/last-commit.svg)](https://github.com/mikaeltorni/linux_programming_setup/commits/master) [![Commits in 30 days: 8 as of 2026-11-25](docs/badges/commit-activity.svg)](https://github.com/mikaeltorni/linux_programming_setup/graphs/commit-activity) [![Open issues: 0 as of 2026-11-25](docs/badges/issues.svg)](https://github.com/mikaeltorni/linux_programming_setup/issues)
+
+Activity snapshot from GitHub’s default branch on 2026-11-25.
+
+[Installation](#installation) · [Extensions](#managing-extensions) · [Cursor skills](#cursor-skills-from-programming_prompts) · [Continue configuration](#continue-ai-configuration) · [MIT license](LICENSE.md)
+
+## Quick start
+
+Run from the checkout in an Ubuntu desktop terminal. Installing the system Cursor DEB requires sudo.
+
+```bash
+bash install.sh --list-components
+sudo bash install.sh --select cursor
+cursor --version
+```
+
+The Ubuntu 24.04.5 GNOME 46 X11 workstation VM verified Cursor, the configured extensions, and links to `programming_prompts` skills on two runs.
+
+[Installation Scripts](https://github.com/mikaeltorni/installation_scripts) can also run this installer as part of the Ubuntu setup chain.
 
 Installer runs write separate files in the repository-local `.log/` directory.
 The logs belong to the desktop user, including when sudo installs the Cursor package.
@@ -56,7 +75,7 @@ sudo ISC_NO_REBOOT=1 bash install.sh
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `CURSOR_DEB_URL` | URL to Cursor .deb package | (required, must be set) |
+| `CURSOR_DEB_URL` | URL to Cursor .deb package | Bundled Linux x64 DEB URL |
 | `CURSOR_EXTENSIONS_CONFIG` | Extension-list filename relative to `configs/` | `vsc_cursor_extensions` |
 | `CONTINUE_CONFIG_NAME` | Continue YAML filename relative to `configs/` | `continue/config.yaml` |
 | `LMSTUDIO_USER_SERVICE_NAME` | Agent Command Center LM Studio service to restart after profile changes | `lmstudio-serve.service` |
