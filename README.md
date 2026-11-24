@@ -4,7 +4,8 @@
 
 Cursor IDE installation, VS Code extension management, and Continue AI assistant configuration.
 
-Installer run logs are written to the repository-local `.log/` directory.
+Installer runs write separate files in the repository-local `.log/` directory.
+The logs belong to the desktop user, including when sudo installs the Cursor package.
 
 ## Repository dependencies
 
