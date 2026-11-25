@@ -3,9 +3,9 @@
 Linux Programming Setup is a Cursor editor setup installer for Ubuntu developers who want
 reproducible extensions, coding skills, and optional Continue configuration.
 
-[![Last commit: 2026-11-24](docs/badges/last-commit.svg)](https://github.com/mikaeltorni/linux_programming_setup/commits/master) [![Commits in 30 days: 8 as of 2026-11-25](docs/badges/commit-activity.svg)](https://github.com/mikaeltorni/linux_programming_setup/graphs/commit-activity) [![Open issues: 0 as of 2026-11-25](docs/badges/issues.svg)](https://github.com/mikaeltorni/linux_programming_setup/issues)
-
-Activity snapshot from GitHub’s default branch on 2026-11-25.
+[![Last commit](https://img.shields.io/github/last-commit/mikaeltorni/linux_programming_setup)](https://github.com/mikaeltorni/linux_programming_setup/commits/master)
+[![Commit activity](https://img.shields.io/github/commit-activity/m/mikaeltorni/linux_programming_setup)](https://github.com/mikaeltorni/linux_programming_setup/graphs/commit-activity)
+[![Issues](https://img.shields.io/github/issues/mikaeltorni/linux_programming_setup)](https://github.com/mikaeltorni/linux_programming_setup/issues)
 
 [Installation](#installation) · [Extensions](#managing-extensions) · [Cursor skills](#cursor-skills-from-programming_prompts) · [Continue configuration](#continue-ai-configuration) · [MIT license](LICENSE.md)
 
@@ -21,8 +21,6 @@ cursor --version
 
 The Ubuntu 24.04.5 GNOME 46 X11 workstation VM verified Cursor, the configured extensions, and links to `programming_prompts` skills on two runs.
 
-[Installation Scripts](https://github.com/mikaeltorni/installation_scripts) can also run this installer as part of the Ubuntu setup chain.
-
 Installer runs write separate files in the repository-local `.log/` directory.
 The logs belong to the desktop user, including when sudo installs the Cursor package.
 
@@ -37,11 +35,11 @@ enhance it and never block installation when absent.
 - **Content (soft, cursor_skills):** [`programming_prompts`](https://github.com/mikaeltorni/programming_prompts)
   supplies the skill bodies linked into each project's `.cursor/skills/`; cloned
   on demand when the `cursor_skills` component runs and the checkout is missing.
-- **Manifest (soft, cursor_skills):** [`installation_scripts`](https://github.com/mikaeltorni/installation_scripts)
+- **Manifest (soft, cursor_skills):** `installation_scripts`
   `scripts/repository_manifest.sh` lists which sibling projects receive the
   deployment (`CLONE_REPOS` plus `installation_scripts` itself).
-See the full cross-repository map in
-[installation_scripts/DEPENDENCIES.md](https://github.com/mikaeltorni/installation_scripts/blob/master/DEPENDENCIES.md).
+
+[Programming Prompts](https://github.com/mikaeltorni/programming_prompts) supplies the skill content. [Linux CLI Setup](https://github.com/mikaeltorni/linux_codex_claude_code_setup) handles Codex and Claude Code installations.
 
 ## Features
 
@@ -195,12 +193,12 @@ MIT License — see LICENSE.md
 This repository is cloned and run by the master installer
 (`installation_scripts/install.sh`). Membership and order live in
 `installation_scripts/scripts/repository_manifest.sh`; the dependency map is
-[`installation_scripts/DEPENDENCIES.md`](https://github.com/mikaeltorni/installation_scripts/blob/master/DEPENDENCIES.md).
+`installation_scripts/DEPENDENCIES.md`.
 
 ## Component selection
 
 This repository's `install.sh` participates in the shared installer
-component menu (see the [`installation_scripts`](https://github.com/mikaeltorni/installation_scripts)
+component menu (see the `installation_scripts`
 master installer). Run standalone, it offers an interactive submenu on a
 terminal; the master installer drives it non-interactively.
 
@@ -259,6 +257,28 @@ You are solely responsible for determining whether this software is suitable, sa
 The authors and copyright holders make no guarantees regarding security, reliability, availability, correctness, compliance, non-infringement, or fitness for any particular purpose.
 
 This notice is intended to clarify the nature of the project and does not impose additional restrictions beyond the MIT License.
+
+## Cursor editor setup on Ubuntu FAQ
+
+### How do I install the Cursor package on Ubuntu?
+
+Run `sudo bash install.sh --select cursor` from the checkout as the desktop user. Verify it with `cursor --version` after installation.
+
+### Can I override the Cursor download URL?
+
+Yes. Set `CURSOR_DEB_URL` to a compatible Cursor DEB when you need to pin a build. The bundled default URL is used when no override is provided.
+
+### How do I configure just Cursor extensions?
+
+List the component IDs with `bash install.sh --list-components` and select `cursor_extensions` for the extension configuration. The installer requires the Cursor component to be selected or detected.
+
+### Where do the repository coding skills come from?
+
+The `cursor_skills` component uses the public Programming Prompts checkout. It links skills and the always-on guidelines into its managed project directories.
+
+### Is Continue required for Cursor setup?
+
+The Continue configuration is a separate optional component. Select it if you want the bundled configuration and choose a model using the documented options.
 
 ## Installer lifecycle
 
